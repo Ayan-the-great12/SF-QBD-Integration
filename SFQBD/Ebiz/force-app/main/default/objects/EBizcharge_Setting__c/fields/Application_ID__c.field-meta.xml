@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Application_ID__c</fullName>
+    <deprecated>false</deprecated>
+    <externalId>false</externalId>
+    <label>Application ID</label>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Picklist</type>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>b31d6acb-c2d7-4c37-80c7-d663b1b008ed</fullName>
+                <default>true</default>
+                <label>b31d6acb-c2d7-4c37-80c7-d663b1b008ed</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

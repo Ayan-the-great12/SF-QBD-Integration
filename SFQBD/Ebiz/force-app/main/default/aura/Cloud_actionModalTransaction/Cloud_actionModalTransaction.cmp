@@ -1,0 +1,88 @@
+<aura:component controller="eBc_TransactionsController">
+
+    <aura:attribute name="Spinner" type="boolean" default="false" />
+    <aura:attribute name="isOpen" type="boolean" default="false" required="true" />
+    <aura:attribute name="PartialPayment" type="boolean" default="false" />
+    <aura:attribute name="Transcations" type="List" required="true" />
+    <aura:attribute name="strObj" type="sObject" required="true" />
+    <aura:attribute name="ReceiptEmail" type="string" default="" />
+    <aura:attribute name="RefundAmount" type="integer" default="" />
+    <aura:handler event="force:refreshView" action="{!c.doInit}" />
+    <aura:if isTrue="{!v.isOpen}">
+
+        <!--loading spinner-->
+        <aura:if isTrue="{!v.Spinner}">
+            <div aura:id="spinnerId" class="slds-spinner_container" style="position: fixed; z-index: 9999;">
+                <lightning:spinner aura:id="Spinner" alternativeText="Loading" size="medium" variant="brand" />
+            </div>
+        </aura:if>
+        <!-- =========== -->
+
+        <!--###### MODAL BOX Start######-->
+        <section role="dialog" tabindex="-1" aria-modal="true" class="slds-modal slds-fade-in-open">
+            <div class="slds-modal__container">
+
+                <!-- ###### MODAL BOX HEADER Start ######-->
+                <header class="slds-modal__header">
+                    <lightning:buttonIcon iconName="utility:close" onclick="{! c.closeModel }" alternativeText="close" variant="bare-inverse" class="slds-modal__close" />
+                    <h2 class="slds-text-heading_medium slds-hyphenate">
+                        {!v.strObj.modalTitle}
+                    </h2>
+                </header>
+                <!--###### MODAL BOX BODY Part Start######-->
+
+                <div class="slds-modal__content slds-p-around_medium">
+                    <div class="slds-p-vertical_xx-large">
+                        <aura:if isTrue="{!v.strObj.action == 'EmailReceipt'}">
+                            <lightning:input type="email" required="true" class="slds-m-horizontal_xx-large" aura:id="receiptEmail" label="Send Receipt To" value="{!v.ReceiptEmail}" />
+                            <aura:set attribute="else">
+                                <aura:if isTrue="{!v.strObj.action == 'DownloadReceipt'}">
+                                    <div class="slds-text-align_center">{!v.strObj.modalMessage}</div>
+
+                                    <aura:set attribute="else">
+                                        <div class="slds-text-align_center">{!v.strObj.modalMessage}</div>
+                                    </aura:set>
+                                </aura:if>
+                            </aura:set>
+                        </aura:if>
+
+                        <aura:if isTrue="{!v.strObj.action == 'RefundTransaction'}">
+                            <aura:if isTrue="{!and(v.strObj.transType != 'Check (Credit)',and(v.strObj.transType != 'Check (Sale)',v.strObj.transType != 'Check (Refund)'))}">
+                                <div class="slds-form-element slds-form-element_horizontal slds-size_3-of-4 slds-m-horizontal_xx-large slds-m-vertical_medium">
+                                    <lightning:input type="checkbox" checked="{!v.PartialPayment}" label="Refund Partial Transaction" aura:id="partialpaymentcheckbox" />
+                                </div>
+                                <aura:if isTrue="{!v.PartialPayment}">
+                                    <div class="slds-form-element slds-size_2-of-4 slds-align_absolute-center">
+                                        <lightning:input type="number" required="true" placeholder="$ Input refund amount..." aura:id="partialRefund" label="Refund Amount" formatter="currency" step="0.01" messageWhenBadInput="Input numeric values for amount" messageWhenValueMissing="Required Field"
+                                            maxlength="18" value="{!v.RefundAmount}" />
+                                    </div>
+                                </aura:if>
+                            </aura:if>
+                        </aura:if>
+
+                    </div>
+                </div>
+
+                <!--###### MODAL BOX FOOTER Part Start ######-->
+                <footer class="slds-modal__footer">
+                    <lightning:button variant="neutral" class="slds-cst-btn" label="Return to Screen" title="Return to Screen" onclick="{! c.closeModel }" />
+
+                    <aura:if isTrue="{!v.strObj.action == 'VoidTransaction'}">
+                        <lightning:button variant="brand" class="slds-cst-btn" label="Void Now" title="Void Now" onclick="{! c.voidTransaction }" />
+                    </aura:if>
+                    <aura:if isTrue="{!v.strObj.action == 'RefundTransaction'}">
+                        <lightning:button variant="brand" class="slds-cst-btn" label="Refund Transaction" title="Refund Transaction" onclick="{! c.refundTransaction }" />
+                    </aura:if>
+                    <aura:if isTrue="{!v.strObj.action == 'EmailReceipt'}">
+                        <lightning:button variant="brand" class="slds-cst-btn" label="Send Receipt" title="Send Receipt" onclick="{! c.sendTransactionEmail }" />
+                    </aura:if>
+                    <aura:if isTrue="{!v.strObj.action == 'DownloadReceipt'}">
+                        <lightning:button variant="brand" label="Download Receipt" title="Download Receipt" onclick="{! c.downloadpdf }" />
+                    </aura:if>
+                </footer>
+            </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open"></div>
+        <!--###### MODAL BOX Part END Here ######-->
+    </aura:if>
+</aura:component>

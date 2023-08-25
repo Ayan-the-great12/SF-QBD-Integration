@@ -1,0 +1,1002 @@
+<aura:component controller="eBc_SettingController"
+                implements="force:appHostable,flexipage:availableForAllPageTypes" access="global" >
+
+    <aura:attribute name="Spinner" type="boolean" default="false"/>
+    <aura:attribute name="ShowWarn" type="Boolean" default="false" required="true"/>
+    <aura:attribute name="isOpen" type="boolean" default="false"/>
+    <aura:attribute name="ListItems" type="List" default = "[
+    {'label': 'Microsoft Dynamic AX 2012', 'value': 'Microsoft Dynamic AX 2012'},
+    {'label': 'Epicor', 'value': 'Epicor'},
+    {'label': 'QuickBooks Desktop', 'value': 'QuickBooks Desktop'},
+    {'label': 'QuickBooks Online', 'value': 'QuickBooks Online'}]" />
+    <aura:attribute name="EntityOptions" type="List"/>
+    <aura:attribute name="checkItems" type="boolean" default="false"/>
+    <aura:attribute name="checkCustomers" type="boolean" default="false"/>
+    <aura:attribute name="checkOrders" type="boolean" default="false"/>
+    <aura:attribute name="entityValue" type="String" />
+    <aura:attribute name="classNameDynamic" type="String" default="slds-hide" />
+    <aura:attribute name="classNameEpicor" type="String" default="slds-hide" />
+    <aura:attribute name="classNameDesktop" type="String" />
+    <aura:attribute name="classNameOnline" type="String" default="slds-hide" />
+    <aura:attribute name="IconsItems" type="List" />
+    <aura:attribute name="ComboChangeValue" type="List" />
+    <aura:attribute name="Checker" type="boolean" default="true"/>
+    <aura:attribute name="viewTable" type="boolean" default="true"/>
+    <aura:attribute name="DataColumns" type="List" />
+    <aura:attribute name="DataColumnsDynamic" type="List" />
+    <aura:attribute name="DataColumnsEpicor" type="List" />
+    <aura:attribute name="DataColumnsDesktop" type="List" />
+    <aura:attribute name="DataColumnsOnline" type="List" />
+    <aura:attribute name="tableData" type="List" />
+    <aura:attribute name="DynamicsTableData" type="List" />
+    <aura:attribute name="EpicorTableData" type="List" />
+    <aura:attribute name="DesktopTableData" type="List" />
+    <aura:attribute name="OnlineTableData" type="List" />
+    <aura:attribute name="sortBy" type="String" />
+    <aura:attribute name="sortDirection" type="String" />
+    <aura:attribute name="selectedRowsCount" type="Integer" default="0" />
+    <aura:attribute name="SelectedRecords" type="Object" />
+    <aura:attribute name="draftValues" type="Object" default="[]"/>
+    <aura:attribute name="myBool" type="Boolean" default="true"/>
+    <aura:attribute name="requiredChecker" type="Boolean" default="true"/>
+    <aura:attribute name="OpenInputModel" type="Boolean" default="false"/>
+    <aura:attribute name="test1" type="Boolean"  default="false"/> 
+    <aura:attribute name="test" type="Boolean"  default="false"/> 
+    <aura:attribute name="FieldSelection" type="List" default = "[{'label': 'Account/Contact Email', 'value': 'Email Address'},
+    {'label': 'Account/Contact Phone', 'value': 'Phone Number'}]" />
+    <aura:attribute name="FieldSelection1" type="String" />
+    <aura:attribute name="FieldSelection2" type="String" />
+    <aura:attribute name="DropDownBool" type="Boolean" default="false"/>
+    <aura:attribute name="viewPicklistModel" type="boolean" default="false"/>
+    <aura:attribute name="newConnection" type="String" default="QuickBooks Desktop"/>
+    <aura:attribute name="SalId" type="Integer" />
+    <aura:attribute name="ExtId" type="Integer" />
+    <aura:attribute name="IconVal" type="Integer" />
+
+  <aura:handler name="init" value="{! this }" action="{! c.doInit }" />
+  <aura:handler event="force:refreshView" action="{!c.isRefreshed}" />
+  
+
+
+    <div class="container">
+        <!-- <aura:renderIf isTrue="{!v.Spinner}">
+            <div aura:id="spinnerId" class="slds-spinner_container" style="position: fixed;">
+                <lightning:spinner aura:id="Spinner" alternativeText="Loading" size="medium" variant="brand"/>
+            </div>
+        </aura:renderIf> -->
+        <div class="row">
+            <div class="slds-m-right_x-large slds-text-align_right">
+                <lightning:button variant="brand" 
+                                  label="Add new Connection" 
+                                  onclick="{!c.PreviewModel}"/>
+                                  
+            </div>
+<h1 class="slds-page-header__title slds-truncate">Bridge Connectors</h1>
+
+<br/>
+<p>Here you can establish and manage conections between Saleforce and other systems, such as ERPS and eCommerce platforms. </p>
+
+<div class="slds-m-right_x-large slds-text-align_right">
+    <lightning:button class="backColor"
+                      label="Delete Connection" 
+                       onclick="{!c.DelConnection}"/>
+</div>
+</div>
+<aura:if isTrue="{!v.isOpen}">
+      <!--###### MODAL BOX Start######--> 
+      <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+        <div class="slds-modal__container">
+            <!-- ###### MODAL BOX HEADER Start ######-->
+            <header class="slds-modal__header">
+                <lightning:buttonIcon iconName="utility:close"
+                                      onclick="{! c.closeModel }"
+                                      alternativeText="close"
+                                      variant="bare-inverse"
+                                      class="slds-modal__close"/>
+             <h2 id="modal-heading-01" class="slds-text-heading_medium slds-hyphenate">Create New Bridge Connection</h2>
+            </header>
+               <!--###### MODAL BOX BODY Part Start######-->
+               <div class="slds-modal__content slds-p-around_large" id="modal-content-id-1">
+                <p class="slds-m-vertical_large ">Choose a system to connect with saleforce</p>
+          
+                <lightning:combobox class="slds-form-element slds-size_1-of-2"
+                                    aura:id = "applicationid" 
+                                    value="{!v.newConnection}" 
+                                    options="{!v.ListItems }" 
+                                    onchange="{! c.TransHandler }"/>
+            
+            </div>
+  <!--###### MODAL BOX FOOTER Part Start ######-->
+  <footer class="slds-modal__footer">
+    <lightning:button variant="neutral" 
+                      label="Cancel"
+                      title="Cancel"
+                      onclick="{! c.closeModel }"/>
+        <lightning:button variant="brand" 
+                          label="Yes Continue"
+                          title="Yes Continue"
+                          onclick="{!c.SuccessHandler}"
+                          disabled="{!v.Checker}"/>
+        <!-- <aura:set attribute="else">
+    </aura:if> -->
+</footer>
+<!--========================================-->
+           </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open"></div>
+    </aura:if>
+    <br/>
+    <br/>
+<div class="{!v.classNameDynamic}">
+<aura:If isTrue="{!v.DynamicsTableData.length &gt; 0}">
+      
+        <h1 class="slds-page-header__title slds-truncate">Saleforce and Microsoft Dynamic AX 2012 Connection</h1>
+        <br/>
+        <h3>Field Mappings</h3>
+        <br/>
+        <lightning:datatable
+        class="myColor"
+        aura:id="DynamicsTableData"
+        keyField="Id"
+        hideCheckboxColumn="false"
+        draftValues="{!v.draftValues}"
+        columns="{!v.DataColumnsDynamic}"
+        data="{!v.DynamicsTableData}"
+        onrowaction="{! c.handleRowAction }"
+        onrowselection="{! c.updateSelectedText }"
+        onsave="{!c.handleSaveEdition}"
+      />
+      <br/>
+<div class="slds-m-right_x-large slds-text-align_right">
+                      <lightning:button label="Save"
+                                      variant="brand"
+                                      iconName="utility:save"                       
+                                      onclick="{! c.saveSettingsDisplay }"
+                                      />      
+  </div>
+  <lightning:button 
+                  variant="brand"
+                  label="Add New Field" 
+                  onclick="{! c.addNewModel }"
+  />
+  <br/>
+  <br/>
+                  <aura:if isTrue="{!v.OpenInputModel}">
+                    <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+                        <div class="slds-modal__container">
+                            <!-- ###### MODAL BOX HEADER Start ######-->
+                            <header class="slds-modal__header">
+                                <lightning:buttonIcon iconName="utility:close"
+                                                      onclick="{! c.closeModel }"
+                                                      alternativeText="close"
+                                                      variant="bare-inverse"
+                                                      class="slds-modal__close"/>
+                             <h2 id="modal-heading-01" class="slds-text-heading_medium slds-hyphenate"><strong>Insert New Data</strong></h2>
+                            </header>
+                               <!--###### MODAL BOX BODY Part Start######-->
+                               <div class="slds-modal__content slds-p-around_large" id="modal-content-id-1">
+                                 
+                            <div class="slds-col slds-size_1-of-2">
+                                <div class="slds-form-element__row slds-m-vertical_small">
+                                    <div class="slds-size_1-of-1">
+                                        <div class="slds-form-element">
+                                            <lightning:input type="text" 
+                                                             aura:id='req-fieldsrr'      
+                                                             label="Salesforce Id" 
+                                                             value="{!v.SalId}"
+                                                             placeholder="Enter a Id..."
+                                                             onchange="{!c.changeSalId}"/>
+                                                             
+                                        </div>
+                                    </div>
+                                </div>
+
+                          </div>
+                         
+                            <div class="slds-col slds-size_1-of-2">
+                                <div class="slds-form-element__row slds-m-vertical_small">
+                                    <div class="slds-size_1-of-1">
+                                        <div class="slds-form-element">
+                                            <lightning:input type="text" 
+                                                             aura:id='req-fieldsrr' 
+                                                             label="{!v.newConnection +' Id'}" 
+                                                             value="{!v.ExtId}"
+                                                             placeholder="Enter a Id..."
+                                                             onchange="{!c.changeExtId}"
+                                                             />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="slds-form-element__row slds-m-vertical_small">
+                                <div class="slds-size_1-of-2">
+                                    <div class="slds-form-element">
+                                        <!-- <lightning:combobox aura:id='req-fieldsrr' 
+                                                            dropdownAlignment="right"
+                                                            label="Flow Direction" 
+                                                            placeholder="Choose a direction"
+                                                            options="{!v.IconsItems}" 
+                                                            onchange="{!c.ComboChange}"
+                                                            value=""
+                                                            /> -->
+                                     <label>Select Flow Direction</label>&nbsp;
+                                     <lightning:buttonMenu aura:id="menu" alternativeText="Show menu" onselect="{! c.handleSelect }">
+                                                <lightning:menuItem aura:id="menuItems" value ="Saleforce to Externals" class="myColor" checked="false" iconName="utility:forward"/>
+                                                <lightning:menuItem aura:id="menuItems" value ="Externals to Salesforce" class="myColor" checked="false" iconName="utility:back"/>
+                                                 <lightning:menuItem aura:id="menuItems" value ="Bi Directional" class="myColor" checked="false" iconName="utility:rotate"/>
+                                       </lightning:buttonMenu>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-2">
+                                <div class="slds-form-element__row slds-m-vertical_small">
+                                    <div class="slds-size_1-of-1">
+                                        <div class="slds-form-element">
+                                            
+                <lightning:combobox 
+                                   aura:id = "applicationComboId"
+                                   placeholder="Entity Selection" 
+                                   value="{!v.entityValue}" 
+                                   options="{!v.EntityOptions }" 
+                                   onchange="{! c.entityChange }"/>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                  <!--###### MODAL BOX FOOTER Part Start ######-->
+                  <footer class="slds-modal__footer">
+                    <lightning:button variant="neutral" 
+                                      label="Cancel"   
+                                      onclick="{! c.closeModel }"/>
+                        <lightning:button variant="brand" 
+                                          label="Save"
+                                          onclick="{!c.SavingInputsData}" />
+                        <!-- <aura:set attribute="else">
+                    </aura:if> -->
+                </footer>
+                <!--========================================-->
+                           </div>
+                        </section>
+                        <div class="slds-backdrop slds-backdrop_open"></div>
+                  </aura:if>
+                  <lightning:input type="checkbox"
+                                   label="Add Multiple Fields"
+                                   aura:id = "checkbox"
+                                   onchange="{!c.onCheck}"
+                                   checked="{!v.test}" 
+                  />
+       <!-- <span>Add Multiple Fields<ui:inputCheckbox aura:id="checkbox" change="{!c.onCheck}"/></span>      -->
+       <br/>
+       <label class="slds-page-header__title slds-truncate Position">Field Mappings</label>
+       <lightning:combobox class="slds-form-element slds-size_1-of-4"
+       aura:id = "FieldUId" 
+       value="{!v.FieldSelection1}" 
+       options="{!v.FieldSelection }" 
+       onchange="{!c.MultiComboChange1}"/>
+       <br/>
+       <aura:if isTrue="{!v.test1}">
+        <lightning:button variant="brand" 
+                           label="Add Multiple Fields"
+                           onclick="{!c.MultipleDropdown}"/>
+    </aura:if>
+    <aura:if isTrue="{!and(v.DropDownBool,v.test1)}">
+        <lightning:combobox class="slds-form-element slds-size_1-of-4"
+        aura:id = "FieldUId" 
+        value="{!v.FieldSelection2 }" 
+        options="{!v.FieldSelection }" 
+        onchange="{!c.MultiComboChange2}"/>
+    </aura:if>
+<br/>
+<H2>Automation Settings</H2>
+<lightning:input type="checkbox"
+                                   label="Automatically Imports Orders(e.g sales orders,quotes,opportunities,custom orders objects"
+                                   aura:id = "checkbox"
+                                   onchange="{!c.onCheck}" 
+                  />
+                  <lightning:input type="checkbox"
+                  label="Automatically Imports Accounts(e.g customers,accounts,person accounts,opportunities,custom customer objects"
+                  aura:id = "checkbox"
+                  onchange="{!c.onCheck}" 
+ />
+    <aura:if isTrue="{!v.viewPicklistModel}">
+        <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+            <div class="slds-modal__container">
+                <!-- ###### MODAL BOX HEADER Start ######-->
+                <header class="slds-modal__header">
+                    <lightning:buttonIcon iconName="utility:close"
+                                          onclick="{! c.closeModel }"
+                                          alternativeText="close"
+                                          variant="bare-inverse"
+                                          class="slds-modal__close"/>
+                    <h2 id="modal-heading-01" class="slds-text-heading_medium slds-hyphenate">Please select any option</h2>
+                </header>
+                <!--###### MODAL BOX BODY Part Start######-->
+                <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1">
+
+                    <label><strong>Select flow(Forward/Backward/Bi-Directional)</strong></label>
+                    <lightning:combobox class="slds-form-element slds-size_1-of-3 "
+                                        aura:id = "ComboId" 
+                                        value="" 
+                                        options="{!v.IconsItems}" 
+                                        onchange="{!c.ComboChange}"/>
+                </div>
+                <!--###### MODAL BOX FOOTER Part Start ######-->
+                <footer class="slds-modal__footer">
+                    
+                    <lightning:button variant="neutral" 
+                                      label="Return to Screen"
+                                      onclick="{! c.closeModel }"/>
+                            <lightning:button variant="brand" 
+                                              label="Save"
+                                              onclick="{! c.saveData }"/>
+                </footer>
+            </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open"></div>
+    </aura:if>
+    <aura:set attribute="else">
+        <div class="slds-illustration slds-illustration_small">
+            <img src="{!$Resource.EmptyState}" />
+        </div>
+    </aura:set>
+</aura:If>
+<br/>
+<br/>
+</div>
+<div class="{!v.classNameEpicor}"> 
+<aura:If isTrue="{!v.EpicorTableData.length &gt; 0}">  
+    <h1 class="slds-page-header__title slds-truncate">Saleforce and Epicor Connection</h1>
+    <br/>
+    <h3>Field Mappings</h3>
+    <br/>
+    <lightning:datatable
+    class="myColor"
+    aura:id="EpicorTableData"
+    keyField="Id"
+    hideCheckboxColumn="false"
+    draftValues="{!v.draftValues}"
+    columns="{!v.DataColumnsEpicor}"
+    data="{!v.EpicorTableData}"
+    onrowaction="{! c.handleRowAction }"
+    onrowselection="{! c.updateSelectedText }"
+    onsave="{!c.handleSaveEdition}"
+  />
+  <br/>
+<div class="slds-m-right_x-large slds-text-align_right">
+                  <lightning:button label="Save"
+                                  variant="brand"
+                                  iconName="utility:save"                       
+                                  onclick="{! c.saveSettingsDisplay }"
+                                  />      
+</div>
+<lightning:button 
+              variant="brand"
+              label="Add New Field" 
+              onclick="{! c.addNewModel }"
+/>
+<br/>
+<br/>
+              <aura:if isTrue="{!v.OpenInputModel}">
+                <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+                    <div class="slds-modal__container">
+                        <!-- ###### MODAL BOX HEADER Start ######-->
+                        <header class="slds-modal__header">
+                            <lightning:buttonIcon iconName="utility:close"
+                                                  onclick="{! c.closeModel }"
+                                                  alternativeText="close"
+                                                  variant="bare-inverse"
+                                                  class="slds-modal__close"/>
+                         <h2 id="modal-heading-01" class="slds-text-heading_medium slds-hyphenate"><strong>Insert New Data</strong></h2>
+                        </header>
+                           <!--###### MODAL BOX BODY Part Start######-->
+                           <div class="slds-modal__content slds-p-around_large" id="modal-content-id-1">
+                             
+                        <div class="slds-col slds-size_1-of-2">
+                            <div class="slds-form-element__row slds-m-vertical_small">
+                                <div class="slds-size_1-of-1">
+                                    <div class="slds-form-element">
+                                        <lightning:input type="text" 
+                                                         aura:id='req-fieldsrr'      
+                                                         label="Salesforce Id" 
+                                                         value="{!v.SalId}"
+                                                         placeholder="Enter a Id..."
+                                                         onchange="{!c.changeSalId}"/>
+                                                         
+                                    </div>
+                                </div>
+                            </div>
+
+                      </div>
+                     
+                        <div class="slds-col slds-size_1-of-2">
+                            <div class="slds-form-element__row slds-m-vertical_small">
+                                <div class="slds-size_1-of-1">
+                                    <div class="slds-form-element">
+                                        <lightning:input type="text" 
+                                                         aura:id='req-fieldsrr' 
+                                                         label="{!v.newConnection +' Id'}" 
+                                                         value="{!v.ExtId}"
+                                                         placeholder="Enter a Id..."
+                                                         onchange="{!c.changeExtId}"
+                                                         />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="slds-form-element__row slds-m-vertical_small">
+                            <div class="slds-size_1-of-2">
+                                <div class="slds-form-element">
+                                    <!-- <lightning:combobox aura:id='req-fieldsrr' 
+                                                        dropdownAlignment="right"
+                                                        label="Flow Direction" 
+                                                        placeholder="Choose a direction"
+                                                        options="{!v.IconsItems}" 
+                                                        onchange="{!c.ComboChange}"
+                                                        value=""
+                                                        /> -->
+                                 <label>Select Flow Direction</label>&nbsp;
+                                 <lightning:buttonMenu aura:id="menu" alternativeText="Show menu" onselect="{! c.handleSelect }">
+                                            <lightning:menuItem aura:id="menuItems" value ="Saleforce to Externals" class="myColor" checked="false" iconName="utility:forward"/>
+                                            <lightning:menuItem aura:id="menuItems" value ="Externals to Salesforce" class="myColor" checked="false" iconName="utility:back"/>
+                                             <lightning:menuItem aura:id="menuItems" value ="Bi Directional" class="myColor" checked="false" iconName="utility:rotate"/>
+                                   </lightning:buttonMenu>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="slds-col slds-size_1-of-2">
+                            <div class="slds-form-element__row slds-m-vertical_small">
+                                <div class="slds-size_1-of-1">
+                                    <div class="slds-form-element">
+                                        
+            <lightning:combobox 
+                               aura:id = "applicationComboId" 
+                               value="{!v.entityValue}"
+                               options="{!v.EntityOptions }" 
+                               onchange="{! c.entityChange }"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+              <!--###### MODAL BOX FOOTER Part Start ######-->
+              <footer class="slds-modal__footer">
+                <lightning:button variant="neutral" 
+                                  label="Cancel"   
+                                  onclick="{! c.closeModel }"/>
+                    <lightning:button variant="brand" 
+                                      label="Save"
+                                      onclick="{!c.SavingInputsData}" />
+                    <!-- <aura:set attribute="else">
+                </aura:if> -->
+            </footer>
+            <!--========================================-->
+                       </div>
+                    </section>
+                    <div class="slds-backdrop slds-backdrop_open"></div>
+              </aura:if>
+              <lightning:input type="checkbox"
+                               label="Add Multiple Fields"
+                               aura:id = "checkbox"
+                               onchange="{!c.onCheck}"
+                               checked="{!v.test}" 
+              />
+   <!-- <span>Add Multiple Fields<ui:inputCheckbox aura:id="checkbox" change="{!c.onCheck}"/></span>      -->
+   <br/>
+   <label class="slds-page-header__title slds-truncate Position">Field Mappings</label>
+   <lightning:combobox class="slds-form-element slds-size_1-of-4"
+   aura:id = "FieldUId" 
+   value="{!v.FieldSelection1}" 
+   options="{!v.FieldSelection }" 
+   onchange="{!c.MultiComboChange1}"/>
+   <br/>
+   <aura:if isTrue="{!v.test1}">
+    <lightning:button variant="brand" 
+                       label="Add Multiple Fields"
+                       onclick="{!c.MultipleDropdown}"/>
+</aura:if>
+<aura:if isTrue="{!and(v.DropDownBool,v.test1)}">
+    <lightning:combobox class="slds-form-element slds-size_1-of-4"
+    aura:id = "FieldUId" 
+    value="{!v.FieldSelection2 }" 
+    options="{!v.FieldSelection }" 
+    onchange="{!c.MultiComboChange2}"/>
+</aura:if>
+<br/>
+<H2>Automation Settings</H2>
+<lightning:input type="checkbox"
+                               label="Automatically Imports Orders(e.g sales orders,quotes,opportunities,custom orders objects"
+                               aura:id = "checkbox"
+                               onchange="{!c.onCheck}" 
+              />
+              <lightning:input type="checkbox"
+              label="Automatically Imports Accounts(e.g customers,accounts,person accounts,opportunities,custom customer objects"
+              aura:id = "checkbox"
+              onchange="{!c.onCheck}" 
+/>
+<aura:if isTrue="{!v.viewPicklistModel}">
+    <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+        <div class="slds-modal__container">
+            <!-- ###### MODAL BOX HEADER Start ######-->
+            <header class="slds-modal__header">
+                <lightning:buttonIcon iconName="utility:close"
+                                      onclick="{! c.closeModel }"
+                                      alternativeText="close"
+                                      variant="bare-inverse"
+                                      class="slds-modal__close"/>
+                <h2 id="modal-heading-01" class="slds-text-heading_medium slds-hyphenate">Please select any option</h2>
+            </header>
+            <!--###### MODAL BOX BODY Part Start######-->
+            <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1">
+
+                <label><strong>Select flow(Forward/Backward/Bi-Directional)</strong></label>
+                <lightning:combobox class="slds-form-element slds-size_1-of-3 "
+                                    aura:id = "ComboId" 
+                                    value="" 
+                                    options="{!v.IconsItems}" 
+                                    onchange="{!c.ComboChange}"/>
+            </div>
+            <!--###### MODAL BOX FOOTER Part Start ######-->
+            <footer class="slds-modal__footer">
+                
+                <lightning:button variant="neutral" 
+                                  label="Return to Screen"
+                                  onclick="{! c.closeModel }"/>
+                        <lightning:button variant="brand" 
+                                          label="Save"
+                                          onclick="{! c.saveData }"/>
+            </footer>
+        </div>
+    </section>
+    <div class="slds-backdrop slds-backdrop_open"></div>
+</aura:if>
+<aura:set attribute="else">
+    <div class="slds-illustration slds-illustration_small">
+        <img src="{!$Resource.EmptyState}" />
+    </div>
+</aura:set>
+</aura:If>
+<br/>
+<br/>
+</div>
+<div class="{!v.classNameDesktop}"> 
+    <aura:If isTrue="{!v.DesktopTableData.length &gt; 0}">  
+    <h1 class="slds-page-header__title slds-truncate">Saleforce and QuickBooks Desktop Connection</h1>
+    <br/>
+    <h3>Field Mappings</h3>
+    <br/>
+    <lightning:datatable
+    class="myColor"
+    aura:id="DesktopTableData"
+    keyField="Id"
+    hideCheckboxColumn="false"
+    draftValues="{!v.draftValues}"
+    columns="{!v.DataColumnsDesktop}"
+    data="{!v.DesktopTableData}"
+    onrowaction="{! c.handleRowAction }"
+    onrowselection="{! c.updateSelectedText }"
+    onsave="{!c.handleSaveEdition}"
+  />
+  <br/>
+<div class="slds-m-right_x-large slds-text-align_right">
+                  <lightning:button label="Save"
+                                  variant="brand"
+                                  iconName="utility:save"                       
+                                  onclick="{! c.saveSettingsDisplay }"
+                                  />      
+</div>
+<lightning:button 
+              variant="brand"
+              label="Add New Field" 
+              onclick="{! c.addNewModel }"
+             
+/>
+<br/>
+<br/>
+              <aura:if isTrue="{!v.OpenInputModel}">
+                <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+                    <div class="slds-modal__container">
+                        <!-- ###### MODAL BOX HEADER Start ######-->
+                        <header class="slds-modal__header">
+                            <lightning:buttonIcon iconName="utility:close"
+                                                  onclick="{! c.closeModel }"
+                                                  alternativeText="close"
+                                                  variant="bare-inverse"
+                                                  class="slds-modal__close"/>
+                         <h2 id="modal-heading-01" class="slds-text-heading_medium slds-hyphenate"><strong>Insert New Data</strong></h2>
+                        </header>
+                           <!--###### MODAL BOX BODY Part Start######-->
+                           <div class="slds-modal__content slds-p-around_large" id="modal-content-id-1">
+                             
+                        <div class="slds-col slds-size_1-of-2">
+                            <div class="slds-form-element__row slds-m-vertical_small">
+                                <div class="slds-size_1-of-1">
+                                    <div class="slds-form-element">
+                                        <lightning:input type="text" 
+                                                         aura:id='req-fieldsrr'
+                                                         required="true"     
+                                                         label="Salesforce Id" 
+                                                         value="{!v.SalId}"
+                                                         placeholder="Enter a Id..."
+                                                         onchange="{!c.validateNewInputForm}"
+                                                         messageWhenValueMissing ="Required Field"
+                                                       />
+                                                         
+                                    </div>
+                                </div>
+                            </div>
+
+                      </div>
+                     
+                        <div class="slds-col slds-size_1-of-2">
+                            <div class="slds-form-element__row slds-m-vertical_small">
+                                <div class="slds-size_1-of-1">
+                                    <div class="slds-form-element">
+                                       
+                                        <lightning:input type="text" 
+                                                         aura:id='req-fieldsrr'
+                                                         required="true" 
+                                                         label="{!v.newConnection +' Id'}"
+                                                         value="{!v.ExtId}"
+                                                         placeholder="Enter a Id..."
+                                                         onchange="{!c.validateNewInputForm}"
+                                                         messageWhenValueMissing ="Required Field"
+                                                         />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="slds-form-element__row slds-m-vertical_small">
+                            <div class="slds-size_1-of-2">
+                                <div class="slds-form-element">
+                                    <!-- <lightning:combobox aura:id='req-fieldsrr' 
+                                                        dropdownAlignment="right"
+                                                        label="Flow Direction" 
+                                                        placeholder="Choose a direction"
+                                                        options="{!v.IconsItems}" 
+                                                        onchange="{!c.ComboChange}"
+                                                        value=""
+                                                        /> -->
+                                 <label>Select Flow Direction</label>&nbsp;
+                                 <lightning:buttonMenu aura:id="menu" alternativeText="Show menu" onselect="{! c.handleSelect }">
+                                            <lightning:menuItem aura:id="menuItems" value ="Saleforce to Externals" class="myColor" checked="false" iconName="utility:forward"/>
+                                            <lightning:menuItem aura:id="menuItems" value ="Externals to Salesforce" class="myColor" checked="false" iconName="utility:back"/>
+                                             <lightning:menuItem aura:id="menuItems" value ="Bi Directional" class="myColor" checked="false" iconName="utility:rotate"/>
+                                   </lightning:buttonMenu>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="slds-col slds-size_1-of-2">
+                            <div class="slds-form-element__row slds-m-vertical_small">
+                                <div class="slds-size_1-of-1">
+                                    <div class="slds-form-element">
+                                        
+            <lightning:combobox 
+                               aura:id='req-fieldsrr'
+                               required="true"
+                               label="Entity Name"   
+                               value="{!v.entityValue}" 
+                               options="{!v.EntityOptions }" 
+                               onchange="{! c.validateNewInputForm }" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+              <!--###### MODAL BOX FOOTER Part Start ######-->
+              <footer class="slds-modal__footer">
+                <lightning:button variant="neutral" 
+                                  label="Cancel"   
+                                  onclick="{! c.closeModel }"/>
+                    <lightning:button variant="brand" 
+                                      label="Save"
+                                      onclick="{!c.SavingInputsData}"
+                                      disabled="{!v.requiredChecker}" />
+                    <!-- <aura:set attribute="else">
+                </aura:if> -->
+            </footer>
+            <!--========================================-->
+                       </div>
+                    </section>
+                    <div class="slds-backdrop slds-backdrop_open"></div>
+              </aura:if>
+              <lightning:input type="checkbox"
+                               label="Add Multiple Fields"
+                               aura:id = "checkbox"
+                               onchange="{!c.onCheck}"
+                               checked="{!v.test}" 
+              />
+   <!-- <span>Add Multiple Fields<ui:inputCheckbox aura:id="checkbox" change="{!c.onCheck}"/></span>      -->
+   <br/>
+   <label class="slds-page-header__title slds-truncate Position">Field Mappings</label>
+   <lightning:combobox class="slds-form-element slds-size_1-of-4"
+   aura:id = "FieldUId" 
+   value="{!v.FieldSelection1}" 
+   options="{!v.FieldSelection }" 
+   onchange="{!c.MultiComboChange1}"/>
+   <br/>
+   <aura:if isTrue="{!v.test1}">
+    <lightning:button variant="brand" 
+                       label="Add Multiple Fields"
+                       onclick="{!c.MultipleDropdown}"/>
+</aura:if>
+<aura:if isTrue="{!and(v.DropDownBool,v.test1)}">
+    <lightning:combobox class="slds-form-element slds-size_1-of-4"
+    aura:id = "FieldUId" 
+    value="{!v.FieldSelection2 }" 
+    options="{!v.FieldSelection }" 
+    onchange="{!c.MultiComboChange2}"/>
+</aura:if>
+<br/>
+<H2>Automation Settings</H2>
+<lightning:input type="checkbox"
+                               label="Automatically Imports Orders(e.g sales orders,quotes,opportunities,custom orders objects"
+                               aura:id = "checkbox"
+                               onchange="{!c.onCheck}" 
+              />
+              <lightning:input type="checkbox"
+              label="Automatically Imports Accounts(e.g customers,accounts,person accounts,opportunities,custom customer objects"
+              aura:id = "checkbox"
+              onchange="{!c.onCheck}" 
+/>
+<aura:if isTrue="{!v.viewPicklistModel}">
+    <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+        <div class="slds-modal__container">
+            <!-- ###### MODAL BOX HEADER Start ######-->
+            <header class="slds-modal__header">
+                <lightning:buttonIcon iconName="utility:close"
+                                      onclick="{! c.closeModel }"
+                                      alternativeText="close"
+                                      variant="bare-inverse"
+                                      class="slds-modal__close"/>
+                <h2 id="modal-heading-01" class="slds-text-heading_medium slds-hyphenate">Please select any option</h2>
+            </header>
+            <!--###### MODAL BOX BODY Part Start######-->
+            <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1">
+
+                <label><strong>Select flow(Forward/Backward/Bi-Directional)</strong></label>
+                <lightning:combobox class="slds-form-element slds-size_1-of-3 "
+                                    aura:id = "ComboId" 
+                                    value="" 
+                                    options="{!v.IconsItems}" 
+                                    onchange="{!c.ComboChange}"/>
+            </div>
+            <!--###### MODAL BOX FOOTER Part Start ######-->
+            <footer class="slds-modal__footer">
+                
+                <lightning:button variant="neutral" 
+                                  label="Return to Screen"
+                                  onclick="{! c.closeModel }"/>
+                        <lightning:button variant="brand" 
+                                          label="Save"
+                                          onclick="{! c.saveData }"/>
+            </footer>
+        </div>
+    </section>
+    <div class="slds-backdrop slds-backdrop_open"></div>
+</aura:if>
+<aura:set attribute="else">
+    <div class="slds-illustration slds-illustration_small">
+        <img src="{!$Resource.EmptyState}" />
+    </div>
+</aura:set>
+</aura:If>
+<br/>
+<br/>
+</div>
+<div class="{!v.classNameOnline}">
+<aura:If isTrue="{!v.OnlineTableData.length &gt; 0}">  
+    <h1 class="slds-page-header__title slds-truncate">Saleforce and QuickBooks Online Connection</h1>
+    <br/>
+    <h3>Field Mappings</h3>
+    <br/>
+    <lightning:datatable
+    class="myColor"
+    aura:id="OnlineTableData"
+    keyField="Id"
+    hideCheckboxColumn="false"
+    draftValues="{!v.draftValues}"
+    columns="{!v.DataColumnsOnline}"
+    data="{!v.OnlineTableData}"
+    onrowaction="{! c.handleRowAction }"
+    onrowselection="{! c.updateSelectedText }"
+    onsave="{!c.handleSaveEdition}"
+  />
+  <br/>
+<div class="slds-m-right_x-large slds-text-align_right">
+                  <lightning:button label="Save"
+                                  variant="brand"
+                                  iconName="utility:save"                       
+                                  onclick="{! c.saveSettingsDisplay }"
+                                  />      
+</div>
+<lightning:button 
+              variant="brand"
+              label="Add New Field" 
+              onclick="{! c.addNewModel }"
+/>
+<br/>
+<br/>
+              <aura:if isTrue="{!v.OpenInputModel}">
+                <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+                    <div class="slds-modal__container">
+                        <!-- ###### MODAL BOX HEADER Start ######-->
+                        <header class="slds-modal__header">
+                            <lightning:buttonIcon iconName="utility:close"
+                                                  onclick="{! c.closeModel }"
+                                                  alternativeText="close"
+                                                  variant="bare-inverse"
+                                                  class="slds-modal__close"/>
+                         <h2 id="modal-heading-01" class="slds-text-heading_medium slds-hyphenate"><strong>Insert New Data</strong></h2>
+                        </header>
+                           <!--###### MODAL BOX BODY Part Start######-->
+                           <div class="slds-modal__content slds-p-around_large" id="modal-content-id-1">
+                             
+                        <div class="slds-col slds-size_1-of-2">
+                            <div class="slds-form-element__row slds-m-vertical_small">
+                                <div class="slds-size_1-of-1">
+                                    <div class="slds-form-element">
+                                        <lightning:input type="text" 
+                                                         aura:id='req-fieldsrr'      
+                                                         label="Salesforce Id" 
+                                                         value="{!v.SalId}"
+                                                         placeholder="Enter a Id..."
+                                                         onchange="{!c.changeSalId}"/>
+                                                         
+                                    </div>
+                                </div>
+                            </div>
+
+                      </div>
+                     
+                        <div class="slds-col slds-size_1-of-2">
+                            <div class="slds-form-element__row slds-m-vertical_small">
+                                <div class="slds-size_1-of-1">
+                                    <div class="slds-form-element">
+                                        <lightning:input type="text" 
+                                                         aura:id='req-fieldsrr' 
+                                                         label="{!v.newConnection +' Id'}" 
+                                                         value="{!v.ExtId}"
+                                                         placeholder="Enter a Id..."
+                                                         onchange="{!c.changeExtId}"
+                                                         />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="slds-form-element__row slds-m-vertical_small">
+                            <div class="slds-size_1-of-2">
+                                <div class="slds-form-element">
+                                    <!-- <lightning:combobox aura:id='req-fieldsrr' 
+                                                        dropdownAlignment="right"
+                                                        label="Flow Direction" 
+                                                        placeholder="Choose a direction"
+                                                        options="{!v.IconsItems}" 
+                                                        onchange="{!c.ComboChange}"
+                                                        value=""
+                                                        /> -->
+                                 <label>Select Flow Direction</label>&nbsp;
+                                 <lightning:buttonMenu aura:id="menu" alternativeText="Show menu" onselect="{! c.handleSelect }">
+                                            <lightning:menuItem aura:id="menuItems" value ="Saleforce to Externals" class="myColor" checked="false" iconName="utility:forward"/>
+                                            <lightning:menuItem aura:id="menuItems" value ="Externals to Salesforce" class="myColor" checked="false" iconName="utility:back"/>
+                                             <lightning:menuItem aura:id="menuItems" value ="Bi Directional" class="myColor" checked="false" iconName="utility:rotate"/>
+                                   </lightning:buttonMenu>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="slds-col slds-size_1-of-2">
+                            <div class="slds-form-element__row slds-m-vertical_small">
+                                <div class="slds-size_1-of-1">
+                                    <div class="slds-form-element">
+                                        
+            <lightning:combobox 
+                               aura:id = "applicationComboId" 
+                               value="{!v.entityValue}" 
+                               options="{!v.EntityOptions }" 
+                               onchange="{! c.entityChange }"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+              <!--###### MODAL BOX FOOTER Part Start ######-->
+              <footer class="slds-modal__footer">
+                <lightning:button variant="neutral" 
+                                  label="Cancel"   
+                                  onclick="{! c.closeModel }"/>
+                    <lightning:button variant="brand" 
+                                      label="Save"
+                                      onclick="{!c.SavingInputsData}" />
+                    <!-- <aura:set attribute="else">
+                </aura:if> -->
+            </footer>
+            <!--========================================-->
+                       </div>
+                    </section>
+                    <div class="slds-backdrop slds-backdrop_open"></div>
+              </aura:if>
+              <lightning:input type="checkbox"
+                               label="Add Multiple Fields"
+                               aura:id = "checkbox"
+                               onchange="{!c.onCheck}"
+                               checked="{!v.test}" 
+              />
+   <!-- <span>Add Multiple Fields<ui:inputCheckbox aura:id="checkbox" change="{!c.onCheck}"/></span>      -->
+   <br/>
+   <label class="slds-page-header__title slds-truncate Position">Field Mappings</label>
+   <lightning:combobox class="slds-form-element slds-size_1-of-4"
+   aura:id = "FieldUId" 
+   value="{!v.FieldSelection1}" 
+   options="{!v.FieldSelection }" 
+   onchange="{!c.MultiComboChange1}"/>
+   <br/>
+   <aura:if isTrue="{!v.test1}">
+    <lightning:button variant="brand" 
+                       label="Add Multiple Fields"
+                       onclick="{!c.MultipleDropdown}"/>
+</aura:if>
+<aura:if isTrue="{!and(v.DropDownBool,v.test1)}">
+    <lightning:combobox class="slds-form-element slds-size_1-of-4"
+    aura:id = "FieldUId" 
+    value="{!v.FieldSelection2 }" 
+    options="{!v.FieldSelection }" 
+    onchange="{!c.MultiComboChange2}"/>
+</aura:if>
+<br/>
+<H2>Automation Settings</H2>
+<lightning:input type="checkbox"
+                               label="Automatically Imports Orders(e.g sales orders,quotes,opportunities,custom orders objects"
+                               aura:id = "checkbox"
+                               onchange="{!c.onCheck}" 
+              />
+              <lightning:input type="checkbox"
+              label="Automatically Imports Accounts(e.g customers,accounts,person accounts,opportunities,custom customer objects"
+              aura:id = "checkbox"
+              onchange="{!c.onCheck}" 
+/>
+<aura:if isTrue="{!v.viewPicklistModel}">
+    <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+        <div class="slds-modal__container">
+            <!-- ###### MODAL BOX HEADER Start ######-->
+            <header class="slds-modal__header">
+                <lightning:buttonIcon iconName="utility:close"
+                                      onclick="{! c.closeModel }"
+                                      alternativeText="close"
+                                      variant="bare-inverse"
+                                      class="slds-modal__close"/>
+                <h2 id="modal-heading-01" class="slds-text-heading_medium slds-hyphenate">Please select any option</h2>
+            </header>
+            <!--###### MODAL BOX BODY Part Start######-->
+            <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1">
+
+                <label><strong>Select flow(Forward/Backward/Bi-Directional)</strong></label>
+                <lightning:combobox class="slds-form-element slds-size_1-of-3 "
+                                    aura:id = "ComboId" 
+                                    value="" 
+                                    options="{!v.IconsItems}" 
+                                    onchange="{!c.ComboChange}"/>
+            </div>
+            <!--###### MODAL BOX FOOTER Part Start ######-->
+            <footer class="slds-modal__footer">
+                
+                <lightning:button variant="neutral" 
+                                  label="Return to Screen"
+                                  onclick="{! c.closeModel }"/>
+                        <lightning:button variant="brand" 
+                                          label="Save"
+                                          onclick="{! c.saveData }"/>
+            </footer>
+        </div>
+    </section>
+    <div class="slds-backdrop slds-backdrop_open"></div>
+</aura:if>
+<aura:set attribute="else">
+    <div class="slds-illustration slds-illustration_small">
+        <img src="{!$Resource.EmptyState}" />
+    </div>
+</aura:set>
+</aura:If>
+</div>
+</div>
+
+</aura:component>

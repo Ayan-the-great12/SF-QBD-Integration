@@ -1,0 +1,159 @@
+<aura:component controller="EBC_ComponentController" implements="flexipage:availableForRecordHome" access="global">
+    <aura:attribute name="ObjectName" type="String" default="" required="true" />
+    <aura:attribute name="recordId" type="String" default="" required="true" />
+    <aura:attribute name="Settings" type="Object" required="true" />
+    <aura:attribute name="Spinner" type="boolean" default="false" />
+    <aura:attribute name="isOpen" type="boolean" default="false" />
+    <aura:attribute name="TitleName" type="String" />
+    <aura:attribute name="CustomCustomerDetail" type="EBizCharge_Fields_Config__c" />
+    <aura:attribute name="CustomCustId" type="String" />
+    <aura:attribute name="CustomCustName" type="String" />
+    <!-- <aura:attribute name="accountId" type="String" />
+    <aura:attribute name="accountName" type="String" /> -->
+    <!-- <aura:attribute name="accountDetail" type="Account" />
+    <aura:attribute name="OpportunityDetail" type="Opportunity" />
+    <aura:attribute name="orderDetail" type="Order" />
+    <aura:attribute name="quoteDetail" type="Quote" /> -->
+    <aura:attribute name="PaymentTotal" type="double" default="0.0" />
+    <aura:attribute name="Amount" type="double" default="0.0" />
+    <aura:attribute name="Tax" type="double" default="0.0" />
+    <aura:attribute name="TaxTitle" type="string" default="" />
+    <aura:attribute name="emailTemplist" type="list" />
+    <aura:attribute name="Template" type="String" default="" />
+    <aura:attribute name="fromName" type="String" default="" />
+    <aura:attribute name="Subject" type="String" default="" />
+    <aura:attribute name="fromEmail" type="String" default="" />
+    <aura:attribute name="Notes" type="String" default="" />
+    <aura:attribute name="TempEmail" type="String" default="" />
+    <aura:attribute name="TempContactEmail" type="String" default="" />
+    <aura:attribute name="TempAccountEmail" type="String" default="" />
+    <aura:attribute name="showCmpPopUp" type="String" default="" required="true" />
+    <aura:attribute name="disableSubmitBtn" type="boolean" default="true" />
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+    <!--loading spinner start -->
+    <aura:if isTrue="{!v.Spinner}">
+        <div aura:id="spinnerId" class="slds-spinner_container" style="position: fixed; z-index:9999;">
+            <lightning:spinner aura:id="Spinner" alternativeText="Loading" size="medium" variant="brand" />
+        </div>
+    </aura:if>
+    <!-- Loading spinner end-->
+    <aura:if isTrue="{!v.isOpen}">
+        <!--====== MODAL BOX Start======-->
+        <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open slds-modal_medium">
+            <div class="slds-modal__container" style="width:75%">
+                <!-- ====== MODAL BOX HEADER Start ======-->
+                <header class="slds-modal__header">
+                    <lightning:buttonIcon iconName="utility:close" onclick="{! c.closeModel }" alternativeText="close" variant="bare-inverse" class="slds-modal__close" />
+                    <h2 id="modal-heading-01" class="slds-text-heading_medium slds-hyphenate"> Send Email Payment Request </h2>
+                </header>
+                <!--====== MODAL BOX BODY Part Start ======-->
+                <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1">
+                    <!--====== Model Content Header Part Start ======-->
+                    <div role="banner">
+                        <div class="slds-grid">
+                            <div class="slds-col slds-has-flexi-truncate">
+                                <div class="slds-media slds-media--center">
+                                    <div class="slds-media__figure">
+                                        <lightning:icon iconName="standard:client" size="medium" />
+                                    </div>
+                                    <div class="slds-media__body">
+                                        <p class="slds-page-header__title slds-truncate"> {!v.TitleName} </p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="slds-col slds-no-flex slds-grid slds-align-bottom">
+                                <div class="slds-text-heading-small"> Payment Total:
+                                    <lightning:formattedNumber value="{!v.PaymentTotal}" style="currency" currencyCode="{!v.Settings.Ebiz_C__Currency__c}" maximumFractionDigits="2" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <hr />
+                    <div class="slds-form" role="list">
+                        <div class="slds-form__row">
+                            <div class="slds-form__item" role="listitem">
+                                <div class="slds-form-element slds-form-element_stacked">
+                                    <lightning:input name="Amount" type="number" required="true" label="Amount" aura:id='field' value="{!v.Amount}" formatter="currency" step="0.01" onchange="{!c.onChangeAmount}" messageWhenBadInput="Input numeric values for amount" messageWhenValueMissing="Required Field" />
+                                </div>
+                            </div>
+                            <div class="slds-form__item" role="listitem">
+                                <div class="slds-size_1-of-5">
+                                    <aura:renderIf isTrue="{!v.Settings.Ebiz_C__Show_Tax_Field__c}">
+                                        <lightning:input type="number" name="tax" label="{!v.TaxTitle}" disabled="{!v.Settings.Ebiz_C__Tax_Calculate_By__c == 'Manual' ? false : true}" formatter="{!v.Settings.Ebiz_C__Tax_Manual_Type__c == 'Use Percent' ? 'percent-fixed' : 'currency'}" step="0.01" value="{!v.Tax}" onchange="{!c.onChangeAmount}" />
+                                    </aura:renderIf>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="slds-page-header slds-m-vertical_medium">
+                            <div class="slds-page-header__row">
+                                <div class="slds-page-header__col-title"> Email Information </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="slds-grid slds-gutters slds-form slds-m-vertical_medium" role="list">
+                        <div class="slds-col slds-size_1-of-2">
+                            <div class="slds-form__row">
+                                <div class="slds-form__item" role="listitem">
+                                    <div class="slds-form-element slds-form-element_stacked">
+                                        <lightning:select aura:id="field" label="Select email template" required="true" messageWhenValueMissing="Please select a template!" value="{!v.Template}" onchange="{!c.getTemplateInfo}">
+                                            <option value=""> -Select- </option>
+                                            <aura:iteration items="{!v.emailTemplist}" var="val">
+                                                <aura:if isTrue="{!val.TemplateType == 'WebFormEmail' }">
+                                                    <option value="{!val.TemplateInternalId}"> {!val.TemplateName } </option>
+                                                </aura:if>
+                                            </aura:iteration>
+                                        </lightning:select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="slds-form__row">
+                                <div class="slds-form__item" role="listitem">
+                                    <div class="slds-form-element slds-form-element_stacked">
+                                        <lightning:input aura:id="field" type="email" required="true" label="From" value="{!v.fromEmail}" onchange="{!c.validateForm}" messageWhenTypeMismatch="Input a valid email address" messageWhenValueMissing="Required Field" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="slds-form__row">
+                                <div class="slds-form__item" role="listitem">
+                                    <div class="slds-form-element slds-form-element_stacked">
+                                        <lightning:input aura:id="field" name="toEmail" type="email" required="true" label="To" value="{!v.TempEmail}" onchange="{!c.validateForm}" messageWhenTypeMismatch="Input a valid email address" messageWhenValueMissing="Required Field" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="slds-col slds-size_1-of-3">
+                            <div class="slds-form__row">
+                                <div class="slds-form__item" role="listitem">
+                                    <div class="slds-form-element slds-form-element_stacked">
+                                        <lightning:input aura:id="field" name="subject" type="text" required="true" label="Subject" value="{!v.Subject}" placeholder="Input subject..." onchange="{!c.validateForm}" messageWhenValueMissing="Please enter subject!" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="slds-form__row">
+                                <div class="slds-form__item" role="listitem">
+                                    <div class="slds-form-element slds-form-element_stacked">
+                                        <lightning:textarea aura:id="field" name="notes" label="Notes" value="{!v.Notes}" placeholder="Input additional notes..." />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="slds-clearfix">
+                        <div class="slds-float_right">
+                            <div class="slds-text-heading-small"> Payment Total:
+                                <lightning:formattedNumber value="{!v.PaymentTotal}" style="currency" currencyCode="{!v.Settings.Ebiz_C__Currency__c}" maximumFractionDigits="2" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!--====== MODAL BOX FOOTER Part Start ======-->
+                <footer class="slds-modal__footer">
+                    <lightning:button variant="neutral" label="Cancel" title="Cancel" onclick="{! c.closeModel }" />
+                    <lightning:button variant="brand" label="Send Email Request" title="Send Email Request" iconName="utility:email" disabled="{!v.disableSubmitBtn}" onclick="{!c.sendEmailReq}" />
+                </footer>
+            </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open"></div>
+        <!--====== MODAL BOX Part END Here ======-->
+    </aura:if>
+</aura:component>

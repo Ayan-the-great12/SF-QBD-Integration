@@ -1,0 +1,178 @@
+<aura:component controller="EBC_LogsController" implements="force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,forceCommunity:availableForAllPageTypes,force:lightningQuickAction" access="global">
+    <ltng:require styles="{!$Resource.NoHeader}" />
+    <aura:attribute name="mydata" type="Object" />
+    <aura:attribute name="mycolumns" type="List" />
+    <aura:attribute name="options" type="List" />
+    <aura:attribute name="findByName" type="List" />
+    <aura:attribute name="key" type="String" />
+    <aura:attribute name="Spinner" type="boolean" default="false" />
+    <aura:attribute type="String" name="sortField" />
+    <aura:attribute type="Boolean" name="sortAsc" default="true" />
+    <aura:attribute name="ShowWarn" type="Boolean" default="false" required="true" />
+    <!-- =====Data table attribute == -->
+
+    <aura:attribute name="selectedRowsCount" type="Integer" default="1" />
+    <aura:attribute name="loadMoreOffset" type="Integer" default="20" />
+    <!-- =========== -->
+
+    <aura:attribute name="allData" type="List" />
+    <aura:attribute name="recordList" type="List" />
+    <aura:attribute name="columns" type="List" />
+    <aura:attribute name="sortedBy" type="String" default="Name" />
+    <aura:handler name="init" action="{!c.doInit}" value="{!this}" />
+    <aura:attribute name="isFourVisible" type="Boolean" default="false" />
+    <aura:attribute name="selectedRows" type="List" />
+    <aura:attribute name="viewPicklistModel" type="boolean" default="false" />
+    <aura:attribute name="ViewLogsMessage" type="String" default="" />
+    <aura:attribute name="sortDirection" type="String" />
+    <aura:attribute name="ExportAs" type="List" default="[{'label': 'Export as CSV', 'value': 'csv'}]" />
+    <aura:attribute name="SelectT" type="List" />
+    <aura:attribute name="isSelectAll" type="boolean" default="false" />
+    <aura:attribute name="OpenInputModel" type="boolean" default="false" />
+    <aura:attribute name="isOpen" type="boolean" default="false" />
+    <aura:attribute name="mslabel" type="String" default="" />
+    <aura:attribute name="maxSelectedShow" type="Integer" default="4" />
+    <aura:attribute name="msoptions" type="List" />
+    <aura:attribute name="showFilterInput" type="Boolean" default="true" />
+    <aura:attribute name="showRefreshButton" type="Boolean" default="true" />
+    <aura:attribute name="showClearButton" type="Boolean" default="true" />
+    <aura:attribute name="msname" type="String" default="Select a value.." />
+    <aura:attribute name="selectedOptions" type="List" />
+    <aura:attribute name="selectedLabel" type="String" default="Select a value.." />
+    <aura:attribute name="initializationCompleted" type="Boolean" default="false" />
+    <aura:handler name="render" value="{!this}" action="{!c.onRender}" />
+
+    <!--loading spinner-->
+    <aura:if isTrue="{!v.Spinner}">
+        <div aura:id="spinnerId" class="slds-spinner_container" style="position: fixed;">
+            <lightning:spinner aura:id="Spinner" alternativeText="Loading" size="medium" variant="brand" />
+        </div>
+    </aura:if>
+    <!-- =========== -->
+
+    <aura:renderIf isTrue="{!v.ShowWarn}">
+        <c:StartUpMessage />
+    </aura:renderIf>
+
+    <!--Main Page Content Area-->
+    <div class="slds-card slds-card_boundary slds-grid slds-grid--vertical">
+        <!-- =========== -->
+
+        <!--Custom Page Header-->
+        <div class="slds-page-header slds-page-header_joined" role="banner">
+            <div class="slds-page-header__row">
+                <div class="slds-page-header__col-title">
+                    <div class="slds-media">
+
+                        <div class="slds-media__body">
+                            <div class="slds-page-header__name">
+                                <div class="slds-page-header__name-title">
+                                    <h1>
+                                        <span>Logs History</span>
+                                        <span class="slds-page-header__title slds-cell-wrap" title="Recently Viewed">All
+                                            Logs
+                                        </span>
+                                    </h1>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Multi check dropdown -->
+
+                <div class="slds-col slds-no-flex slds-grid slds-align-top slds-p-bottom--xx-small">
+                    <div class="slds-col slds-no-flex slds-grid slds-align-top slds-shrink slds-m-right_small">
+                        <div class="slds-form-element">
+                            <label class="slds-form-element__label">{!v.mslabel}Logs Level</label>
+
+                            <div class="slds-form-element__control">
+                                <div class="slds-combobox_container slds-size_small">
+                                    <div id="ms-picklist-dropdown" class="slds-dropdown-trigger slds-dropdown-trigger_click slds-picklist ms-picklist-dropdown" aria-expanded="false" aria-haspopup="listbox" role="listbox">
+                                        <!-- MAIN BUTTON CODE -->
+                                        <div class="slds-combobox__form-element slds-input-has-icon slds-input-has-icon_right" role="none">
+                                            <input class="slds-combobox__input ms-input" id="ms-input" aria-controls="ms-dropdown-items" role="textbox" type="text" placeholder="{!v.selectedLabel}" value="" readonly="true" />
+                                            <span class="slds-icon_container slds-icon-utility-down slds-input__icon slds-input__icon_right" title="Click to open dropdown">
+                                                <lightning:icon iconName="utility:down" size="x-small" class="slds-icon slds-icon--selected slds-icon--x-small slds-icon-text-default slds-m-right--x-small" />
+                                            </span>
+                                        </div>
+                                        <!-- MAIN BUTTON CODE ENDS -->
+                                        <!-- Drop down list -->
+                                        <div id="ms-dropdown-items" role="listbox">
+                                            <!-- Creating unordered list -->
+                                            <ul class="slds-listbox slds-listbox_vertical slds-dropdown slds-dropdown_fluid ms-dropdown" role="presentation">
+
+                                                <!-- Generating list item by iterating over options -->
+                                                <aura:iteration items="{!v.options}" var="item">
+
+                                                    <li role="presentation" class="{!'slds-listbox__item ms-list-item '+ (item.selected ? 'slds-is-selected' : '')}" id="ms-list-item" data-id="{!item.Id}" data-name="{!item.Name}">
+                                                        <div id="listbox-option-unique-id-01" class="slds-media slds-listbox__option slds-listbox__option_plain slds-media_small slds-media_center" role="option">
+                                                            <!-- Icon for each list item -->
+                                                            <span class="slds-media__figure">
+                                                                <lightning:icon iconName="utility:check" size="x-small" class="slds-icon slds-icon--selected slds-icon--x-small slds-icon-text-default slds-m-right--x-small" />
+                                                            </span>
+                                                            <!-- Body of each list item -->
+                                                            <span class="slds-media__body">
+                                                                <span class="slds-truncate" title="{!item.Name}">{!item.Name}</span>
+                                                            </span>
+                                                        </div>
+                                                    </li>
+                                                </aura:iteration>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Multi check dropdown Eng here -->
+
+                <!-- =========== -->
+
+                <!-- Search Bar -->
+                <div class="slds-col slds-no-flex slds-grid slds-align-top slds-p-bottom--xx-small">
+                    <div class="slds-col slds-no-flex slds-grid slds-align-top slds-shrink slds-m-right_small">
+                        <lightning:input aura:id="SearchBox" name="enter-search" label="Search" type="search" placeholder="Search By Message" onchange="{!c.searchTable}" />
+                    </div>
+                    <!-- =========== -->
+                    <!-- Delete Button -->
+                    <div class="slds-m-top_large">
+                        <div>
+                            <lightning:button label="Clear Logs" iconname="utility:delete" disabled="isTrue" variant="Brand" onclick="{!c.deleteData}" />
+                        </div>
+
+                    </div>
+                    <div class="slds-m-left_small">
+                        <div class="slds-m-top_large">
+                            <lightning:button variant="brand" label="   Export as csv   " onclick="{!c.handleExportAs}" />
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        <!-- Data table -->
+        <div style="height: 500px;">
+            <lightning:datatable keyField="id" data="{! v.recordList }" columns="{! v.columns }" hideCheckboxColumn="false" onsort="{!c.updateSorting}" sortedBy="{!v.sortedBy}" sortedDirection="{!v.sortDirection}" onrowaction="{! c.handleRowAction }" onrowselection="{! c.updateSelectedText }"
+                loadMoreOffset="{! v.loadMoreOffset }" />
+        </div>
+        <aura:if isTrue="{!v.viewPicklistModel}">
+            <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-05" aria-modal="true" aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+                <div class="slds-modal__container">
+                    <header class="slds-modal__header">
+                        <lightning:buttonIcon iconName="utility:close" onclick="{! c.closeModel }" alternativeText="close" variant="bare-inverse" class="slds-modal__close" />
+
+                        <div class="demo-only" style="padding: 0.5em;background:#16325c">
+                            <h2 id="modal-heading-01" class="slds-text-color_inverse">Log Details</h2>
+                        </div>
+                    </header>
+
+                    <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1">
+                        <p>{!v.ViewLogsMessage}</p>
+                    </div>
+                </div>
+            </section>
+            <div class="slds-backdrop slds-backdrop_open"></div>
+        </aura:if>
+    </div>
+</aura:component>

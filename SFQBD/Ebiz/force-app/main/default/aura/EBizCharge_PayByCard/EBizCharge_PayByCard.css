@@ -1,0 +1,24 @@
+.THIS .cst-width .slds-form-element__label {
+    width: 110px !important;
+}
+
+.THIS .slds-cst-cbx_right {
+    float: right;
+    margin-right: 15px;
+}
+
+.THIS .slds-align-middle {
+    padding-top: 15px !important;
+}
+
+.THIS .slds-has-error .slds-form-element__help {
+    width: 370px !important;
+}
+
+.THIS .slds-button_text-destructive {
+    border-color: var(--lwc-colorTextDestructive, rgb(194, 57, 52)) !important;
+}
+
+.THIS .slds-form__row {
+    margin-bottom: calc(1 * var(--lwc-spacingSmall, 0.75rem)) !important;
+}

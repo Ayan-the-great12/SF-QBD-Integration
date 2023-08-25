@@ -1,0 +1,142 @@
+<aura:component>
+
+  <aura:attribute name="parentComp" type="Aura.Component" required="true" />
+  <aura:attribute name="ObjectName" type="String" default="" required="true" />
+  <aura:attribute name="recordId" type="String" default="" required="true" />
+  <aura:attribute name="Settings" type="Object" required="true" />
+  <aura:attribute name="conDetail" type="contact" default="" required="true" />
+  <aura:attribute name="ordDetail" type="Order" default="" required="true" />
+  <aura:attribute name="CustomCustDetail" type="EBizCharge_Fields_Config__c" default="" required="true" />
+  <aura:attribute name="pps" type="sObject" required="true" />
+  <aura:attribute name="saveCardsList" type="List" default="" required="true" />
+  <aura:attribute name="payByCardInfo" type="sObject" required="true" />
+  <aura:attribute name="disableSubmitBtn" type="boolean" default="true" required="true" />
+  <aura:attribute name="MethodName" type="string" default="" />
+  <aura:attribute name="ChieldActiveTab" type="string" default="" />
+  <aura:attribute name="selectedCardXC" type="string" default="" />
+  <aura:attribute name="placeholderSC" type="string" default="" />
+  <aura:attribute name="cvcXC" type="Integer" default="" />
+  <aura:attribute name="SendReceiptToXC" type="Boolean" default="false" />
+  <aura:attribute name="addEmailsXC" type="String" default="" />
+  <aura:attribute name="addEmails" type="String" default="" />
+  <aura:attribute name="CardNumber" type="Integer" default="" />
+  <aura:attribute name="BillingAddress" type="String" default="" />
+  <aura:attribute name="expiryMonth" type="Integer" default="" />
+  <aura:attribute name="expiryYear" type="Integer" default="" />
+  <aura:attribute name="CVCNumber" type="Integer" default="" />
+  <aura:attribute name="ZipCode" type="Integer" default="" />
+  <aura:attribute name="saveCard" type="Boolean" default="true" />
+  <aura:attribute name="CardHolderName" type="String" default="" />
+  <aura:attribute name="SendReceiptTo" type="Boolean" default="false" />
+  <aura:attribute name="addCardEmail" type="String" default="" />
+  <aura:attribute name="monthList" type="List" />
+  <aura:attribute name="yearList" type="List" />
+  <aura:attribute name="savePaymentMethod" type="boolean" />
+  <aura:method name="callChildFields" action="{!c.clearFields}" />
+  <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+
+  <div class="slds-p-around_large">
+    <lightning:tabset variant="scoped" selectedTabId="UseExistingCard">
+      <lightning:tab label="Use Existing Card" id="UseExistingCard" onactive="{! c.handleActiveTab }">
+        <div class="" style="height: 440px;">
+          <div class="slds-form-element__control">
+            <div class="slds-form" role="list">
+              <div class="slds-form-element slds-form-element_horizontal ">
+                <lightning:combobox label="Select a credit card" aura:id="req-fieldsXC" required="true"
+                  value="{!v.selectedCardXC}" placeholder="{! v.placeholderSC }" dropdown-alignment="bottom-left"
+                  options="{! v.saveCardsList }" onchange="{! c.validateFormXC }"
+                  messageWhenValueMissing="Please select a saved card" />
+              </div>
+              <div class="slds-form-element slds-form-element_horizontal slds-size_2-of-2">
+                <lightning:input label="Security Code" aura:id="req-fieldsXC" pattern="[0-9]{3,4}" value="{!v.cvcXC}"
+                  onchange="{!c.checkLengthCVC}" required="true"
+                  fieldLevelHelp="A card's security code provides an additional level of online fraud protection. The number is located on your credit card and is generally three to four digits long.
+                  On Visa, Mastercard, and Discover cards, the security code is a three digit non-embossed number on the back of the card printed within the signature panel after the account number. On American Express cards, it is a four digit-nonembossed number on the face of the card."
+                  messageWhenValueMissing="Input a valid security code"
+                  messageWhenPatternMismatch="Input a valid security code" />
+              </div>
+              <div class="slds-form-element slds-form-element_horizontal slds-size_2-of-1" style="width:370px">
+                <ui:inputCheckbox labelClass="slds-float--right" class="slds-col slds-size_1-of-1 slds-cst-cbx_right"
+                  aura:id="cmpCheck" label="Send receipt to (use commas to separate multiple emails)"
+                  change="{!c.checkSendReceiptTo}" />
+              </div>
+              <aura:renderIf isTrue="{!v.SendReceiptToXC}">
+                <div class="slds-size_4-of-7">
+                  <lightning:input aura:id="emailForm" variant="label-hidden" type="text" value="{!v.addEmailsXC}"
+                    onchange="{!c.validateCardEmail}"
+                    messageWhenPatternMismatch="Please enter a valid email or valid emails separated by a comma"
+                    pattern="^(([a-zA-Z0-9_\-\.]+)@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.)|(([a-zA-Z0-9\-]+\.)+))([a-zA-Z]{2,4}|[0-9]{1,3})(\]?)(\s*,\s*|\s*$))*$"
+                    required="true" messageWhenValueMissing="Required Field" maxlength="400" />
+                </div>
+              </aura:renderIf>
+            </div>
+          </div>
+        </div>
+      </lightning:tab>
+      <lightning:tab label="Use New Card" id="AddNewCard" onactive="{! c.handleActiveTab }">
+        <div class="slds-form-element slds-form-element_horizontal slds-size_2-of-2 ">
+          <lightning:input label="Cardholder Name" name="CcardHolderName" type="text" required="true"
+            aura:id="req-fields" value="{!v.CardHolderName}" onchange="{!c.validateFormAC}"
+            messageWhenValueMissing="Cardholder Name is required" />
+        </div>
+        <div class="slds-form-element slds-form-element_horizontal slds-size_2-of-2">
+          <lightning:input label="Card Number" name="number" pattern="[0-9]{15,16}" aura:id="req-fields" required="true"
+            value="{!v.CardNumber}" onchange="{!c.checkLengthCard}"
+            messageWhenPatternMismatch="Input a 16-digit card number"
+            messageWhenValueMissing="Input a 16-digit card number" />
+        </div>
+        <fieldset class="slds-form_horizontal">
+          <lightning:combobox name="month" label="Expiration Month" aura:id="req-fields" required="true"
+            value="{!v.expiryMonth}" class="cst-width slds-form-element__control" options="{! v.monthList }"
+            onchange="{! c.validateFormAC }" messageWhenValueMissing="Expiration Month is required" placeholder="" />
+          <div class="slds-form-element">
+            <lightning:combobox name="year" dropdownAlignment="right" label="Expiration Year" aura:id="req-fields"
+              options="{! v.yearList }" value="{!v.expiryYear}" onchange="{! c.validateFormAC }" required="true"
+              messageWhenValueMissing="Expiration Year is required" placeholder="" />
+          </div>
+        </fieldset>
+        <div class="slds-form-element slds-form-element_horizontal slds-size_2-of-2">
+          <lightning:input label="Security Code" pattern="[0-9]{3,4}" required="true"
+            fieldLevelHelp="A card's security code provides an additional level of online fraud protection. The number is located on your credit card and is generally three to four digits long.
+            On Visa, Mastercard, and Discover cards, the security code is a three digit non-embossed number on the back of the card printed within the signature panel after the account number. On American Express cards, it is a four digit-nonembossed number on the face of the card."
+            aura:id="req-fields" value="{!v.CVCNumber}" onchange="{!c.checkLengthCVC}"
+            messageWhenPatternMismatch="Input a valid security code"
+            messageWhenValueMissing="Input a valid security code" />
+        </div>
+        <div class="slds-form-element slds-form-element_horizontal slds-size_2-of-2 ">
+          <lightning:input label="Card Nickname" name="CcardHolderName" type="text" value="{!v.MethodName}"
+            onchange="{!c.validateFormAC}" />
+        </div>
+        <div class="slds-form-element slds-form-element_horizontal slds-size_2-of-2">
+          <lightning:input label="Billing Address" name="addCardBillingAddress" type="text" aura:id="req-fields"
+            required="true" value="{!v.BillingAddress}" onchange="{!c.validateFormAC}"
+            messageWhenValueMissing="Billing Address is required" />
+        </div>
+        <div class="slds-form-element slds-form-element_horizontal slds-size_2-of-2">
+          <lightning:input label="Zip / Postal Code" aura:id="req-fields" required="true" value="{!v.ZipCode}"
+            onchange="{!c.checkLengthZip}" messageWhenValueMissing="Zip/Postal Code is required" />
+        </div>
+        <aura:if isTrue="{!v.savePaymentMethod}">
+          <div class="slds-form-element slds-form-element_horizontal slds-size_2-of-1" style="width:99px">
+            <ui:inputCheckbox labelClass="slds-float--right" class="slds-col slds-size_1-of-1 slds-cst-cbx_right"
+              label="Save card" aura:id="cmpCheck" change="{!c.checkSaveCard}" />
+          </div>
+        </aura:if>
+        <div class="slds-form-element slds-form-element_horizontal slds-size_2-of-1" style="width:365px">
+          <ui:inputCheckbox labelClass="slds-float--right" class="slds-col slds-size_1-of-1 slds-cst-cbx_right"
+            aura:id="sendToCheck" label="Send receipt to (use commas to separate multiple emails)"
+            change="{!c.checkSendReceiptTo}" />
+        </div>
+        <aura:renderIf isTrue="{!v.SendReceiptTo}">
+          <div class="slds-size_3-of-7">
+            <lightning:input aura:id="emailForm" variant="label-hidden" type="text" value="{!v.addCardEmail}"
+              onchange="{!c.validateAddCardEmail}"
+              messageWhenPatternMismatch="Please enter a valid email or Use commas to separate emails"
+              pattern="^(([a-zA-Z0-9_\-\.]+)@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.)|(([a-zA-Z0-9\-]+\.)+))([a-zA-Z]{2,4}|[0-9]{1,3})(\]?)(\s*,\s*|\s*$))*$"
+              required="true" messageWhenValueMissing="Required Field" maxlength="400" />
+          </div>
+        </aura:renderIf>
+      </lightning:tab>
+    </lightning:tabset>
+  </div>
+</aura:component>

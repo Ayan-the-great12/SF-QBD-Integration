@@ -1,0 +1,214 @@
+<aura:component controller="eBc_SyncDownloadController">
+    <!-- =====Date filter attributes====== -->
+    <aura:attribute name="FromDate" type="date" default="" />
+    <aura:attribute name="ToDate" type="date" default="" />
+    <aura:attribute name="disableFindBtn" type="boolean" default="false" />
+    <aura:attribute name="parentComp" type="Aura.Component" required="true" />
+    <aura:attribute name="Spinner" type="boolean" default="false" />
+    <aura:attribute name="activeTab" type="string" default="" />
+    <aura:attribute name="Product" type="List" />
+    <aura:attribute name="AllProducts" type="List" />
+    <aura:attribute name="selectedProducts" type="List" />
+    <aura:attribute name="productLog" type="List" />
+    <aura:attribute name="isSelectAll" type="boolean" default="false" />
+    <aura:attribute name="NoOfSelectedRecords" type="Integer" default="0" />
+    <aura:attribute name="disableImportBtn" type="boolean" default="true" />
+    <aura:attribute name="disableDownloadBtn" type="boolean" default="false" />
+    <aura:attribute name="disableNextBtn" type="boolean" default="false" />
+    <aura:attribute name="disableExportBtn" type="boolean" default="true" />
+    <aura:attribute name="ProductsDownloaded" type="boolean" default="false" />
+    <aura:attribute name="isOpen" type="boolean" default="false" />
+    <aura:attribute name="modalTitle" type="string" default="" />
+    <aura:attribute name="modalContent" type="string" default="" />
+    <!-- =====Data table attribute == -->
+    <aura:attribute name="DataColumns" type="List" />
+    <aura:attribute name="DataColumnsLogs" type="List" />
+    <aura:attribute name="sortBy" type="String" />
+    <aura:attribute name="sortDirection" type="String" />
+    <aura:attribute name="maxRowSelection" type="Integer" default="50" />
+    <aura:attribute name="selectedRowsCount" type="Integer" default="0" />
+    <aura:attribute name="loadMoreOffset" type="string" default="20" />
+    <!-- =========== -->
+
+    <aura:attribute name="currentPageNumber" type="Integer" default="1" />
+    <aura:attribute name="DivisionID" type="string" default="" />
+    <aura:attribute name="startLimit" type="Integer" default="0" />
+    <aura:attribute name="endLimit" type="Integer" default="1000" />
+    <aura:attribute name="currentIndex" type="Integer" default="0" />
+    <aura:attribute name="maxGridLimit" type="Integer" default="20" />
+    <aura:attribute name="totalPages" type="Integer" default="1" />
+    <aura:attribute name="CurrentProductsCount" type="Integer" default="0" />
+    <aura:attribute name="downloadNext" type="boolean" default="false" />
+
+    <div class="container">
+
+        <!--loading spinner-->
+        <aura:if isTrue="{!v.Spinner}">
+            <div aura:id="spinnerId" class="slds-spinner_container" style="position: fixed;">
+                <lightning:spinner aura:id="Spinner" alternativeText="Loading" size="medium" variant="brand" />
+            </div>
+        </aura:if>
+        <!-- =========== -->
+
+        <!--main filters-->
+        <div class="slds-grid">
+            <div class="slds-align-middle">
+                <span class="slds-text-title slds-text-title_bold">
+                    Download from the Portal and other external sources
+                </span>
+            </div>
+            <div class="slds-m-left_large">
+                <lightning:button variant="brand" label="Download Products" title="Download Products" onclick="{!c.getProducts}" disabled="{!v.disableDownloadBtn}" />
+            </div>
+            <div class="slds-m-left_xx-large">
+                <label class="slds-form-element__label slds-p-top_x-small">From</label>
+            </div>
+
+            <div class="" style="width: 12%;">
+                <lightning:input type="date" dateStyle="short" variant="label-hidden" value="{!v.FromDate}" onchange="{!c.validateForm}" />
+            </div>
+
+            <div class="slds-m-left_large">
+                <label class="slds-form-element__label slds-p-top_x-small">To</label>
+            </div>
+            <div class="slds-m-left_xx-small" style="width: 12%;">
+                <lightning:input type="date" dateStyle="short" variant="label-hidden" value="{!v.ToDate}" onchange="{!c.validateForm}" />
+            </div>
+
+            <div class="slds-m-left_medium">
+                <lightning:button variant="brand" label="Find" disabled="{!v.disableFindBtn}" onclick="{!c.findProducts}" />
+            </div>
+            <div class="slds-m-left_x-small">
+                <lightning:button variant="brand" label="Reset Date Range" onclick="{!c.ClearDateRange}" />
+            </div>
+            <div class="slds-m-left_xx-large">
+                <lightning:button variant="brand" class="slds-float_right slds-m-left_x-large" label="Export as CSV" title="Export as CSV" disabled="{!v.disableExportBtn}" onclick="{!c.exportProduct}" />
+
+            </div>
+
+        </div>
+        <!-- =========== -->
+        <div class="slds-grid">
+            <div class="slds-col" style="padding-top: 10px;" role="listitem">
+                <h1>Showing products to download
+                    <lightning:badge label="{!v.NoOfSelectedRecords}" iconName="utility:success" />
+                </h1>
+            </div>
+            <div class="slds-col slds-p-around_small slds-grid slds-grid_align-end">
+                <aura:renderIf isTrue="{!v.Product.length &gt; 0}">
+                    <lightning:button label="Previous" iconName="utility:chevronleft" iconPosition="left" onclick="{! c.onPrev }" disabled="{! v.currentPageNumber == 1 }" />
+                    <lightning:button label="Next" iconName="utility:chevronright" iconPosition="right" onclick="{! c.onNext }" disabled="{! v.disableNextBtn}" />
+                </aura:renderIf>
+            </div>
+        </div>
+        <!-- ===== Inner Tabs Grid ===== -->
+        <div class="slds-grid slds-p-top_medium">
+            <lightning:tabset variant="scoped" selectedTabId="list">
+
+                <lightning:tab label="List" id="list" onactive="{! c.handleActiveTab }">
+
+                    <div class="slds-grid slds-m-bottom_xx-large">
+                        <div style="max-height :800px; width:100%">
+                            <aura:renderIf isTrue="{!v.Product.length &gt; 0}">
+                                <lightning:datatable aura:id="SyncDownloadProductTable" keyField="Id" hideCheckboxColumn="false" columns="{!v.DataColumns}" data="{!v.Product}" sortedBy="{!v.sortBy}" loadMoreOffset="{! v.loadMoreOffset }" sortedDirection="{!v.sortDirection}" onsort="{!c.handleSort}"
+                                    onrowselection="{! c.updateSelectedText }" />
+
+                                <aura:set attribute="else">
+                                    <div class="slds-illustration slds-illustration_small">
+                                        <img src="{!$Resource.EmptyState}" />
+                                    </div>
+
+                                </aura:set>
+                            </aura:renderIf>
+                        </div>
+                    </div>
+
+                </lightning:tab>
+
+                <lightning:tab label="Log" id="log" onactive="{! c.handleActiveTab }">
+
+                    <div class="slds-grid slds-m-bottom_xx-large">
+                        <div style="height :800px; width:100%">
+                            <aura:renderIf isTrue="{!v.productLog.length &gt; 0}">
+                                <lightning:datatable aura:id="SyncDownloadProductTable" keyField="Id" hideCheckboxColumn="true" columns="{!v.DataColumnsLogs}" data="{!v.productLog}" sortedBy="{!v.sortBy}" loadMoreOffset="{! v.loadMoreOffset }" sortedDirection="{!v.sortDirection}" onsort="{!c.handleSortlog}"
+                                />
+
+                                <aura:set attribute="else">
+                                    <div class="slds-illustration slds-illustration_small">
+                                        <img src="{!$Resource.EmptyState}" />
+                                    </div>
+
+                                </aura:set>
+                            </aura:renderIf>
+                        </div>
+                    </div>
+
+                </lightning:tab>
+            </lightning:tabset>
+        </div>
+        <!-- =========== -->
+
+        <!-- ===== Total Selection Row ===== -->
+        <div class="slds-clearfix ">
+            <div class="slds-float_right">
+                <div class="slds-grid slds-p-top_medium">
+                    <aura:if isTrue="{!v.activeTab == 'list'}">
+                        <div class="slds-col slds-align-middle">
+                            <span class="slds-text-title" style="padding-top:8px;">Total Selected:
+                                {!v.NoOfSelectedRecords}</span>
+                        </div>
+                    </aura:if>
+                    <div class="slds-col slds-m-left_medium">
+                        <aura:if isTrue="{!v.activeTab == 'list'}">
+                            <lightning:button aura:id="Import" variant="brand" label="Import into Salesforce" title="Import into Salesforce" disabled="{!v.disableImportBtn}" onclick="{!c.openModel}" />
+                            <aura:set attribute="else">
+                                <lightning:button aura:id="Clear" variant="brand" label="Clear Log" title="Clear Log" onclick="{!c.openModel}" />
+                            </aura:set>
+                        </aura:if>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- =========== -->
+
+        <!-- ===== confirmation modal popup block ===== -->
+        <aura:if isTrue="{!v.isOpen}">
+            <!--###### MODAL BOX Start######-->
+            <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+                <div class="slds-modal__container">
+                    <!-- ###### MODAL BOX HEADER Start ######-->
+                    <header class="slds-modal__header">
+                        <lightning:buttonIcon iconName="utility:close" onclick="{! c.closeModel }" alternativeText="close" variant="bare-inverse" class="slds-modal__close" />
+                        <h2 id="modal-heading-01" class="slds-text-heading_medium slds-hyphenate">{!v.modalTitle}</h2>
+                    </header>
+                    <!--###### MODAL BOX BODY Part Start######-->
+                    <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1">
+                        <p class="slds-m-vertical_large slds-text-align_center">
+                            <aura:if isTrue="{!v.modalContent == 'Import'}">
+                                Would you like to import <span class="slds-text-color_blue">{!v.NoOfSelectedRecords}</span> products to the Portal and other external sources?
+                                <aura:set attribute="else">
+                                    Are you sure you want to clear the log?
+                                </aura:set>
+                            </aura:if>
+
+                        </p>
+                    </div>
+                    <!--###### MODAL BOX FOOTER Part Start ######-->
+                    <footer class="slds-modal__footer">
+                        <lightning:button variant="neutral" label="Return to Screen" title="Return to Screen" onclick="{! c.closeModel }" />
+                        <aura:if isTrue="{!v.modalContent == 'Import'}">
+                            <lightning:button variant="brand" label="Import Products" title="Import Products" onclick="{! c.ImportProducts }" />
+                            <aura:set attribute="else">
+                                <lightning:button variant="brand" label="Clear Log" title="Clear Log" onclick="{! c.clearLog }" />
+                            </aura:set>
+                        </aura:if>
+
+                    </footer>
+                </div>
+            </section>
+            <div class="slds-backdrop slds-backdrop_open"></div>
+            <!--###### MODAL BOX Part END Here ######-->
+        </aura:if>
+        <!-- ========================================== -->
+    </div>
+</aura:component>

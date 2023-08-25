@@ -1,0 +1,31 @@
+.THIS {}
+
+.THIS .visa {
+    background-image: url("/resource/Ebiz_C__visaImage");
+    background-repeat: no-repeat, repeat;
+    
+}
+
+.THIS .master {
+    background-image: url("/resource/Ebiz_C__MasterCardImage");
+    background-repeat: no-repeat, repeat;
+    
+}
+
+.THIS .american {
+    background-image: url("/resource/Ebiz_C__AmericanExpressImage");
+    background-repeat: no-repeat, repeat;
+    
+}
+
+.THIS .discover {
+    background-image: url("/resource/Ebiz_C__DiscoverImage");
+    background-repeat: no-repeat, repeat;
+    
+}
+
+.THIS .ach {
+    background-image: url("/resource/Ebiz_C__CheckHomeImage");
+    background-repeat: no-repeat, repeat;
+    
+}

@@ -1,0 +1,4 @@
+<aura:event type="COMPONENT" description="simple Lightning Event fire by child component">
+	<aura:attribute name="actionName" type="String" default=""/>
+    <aura:attribute name="objectName" type="String" default=""/>
+</aura:event>

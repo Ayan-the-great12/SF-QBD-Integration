@@ -1,0 +1,118 @@
+<aura:component>
+    <aura:attribute name="parentComp" type="Aura.Component" required="true" />
+    <aura:attribute name="ObjectName" type="String" default="" required="true" />
+    <aura:attribute name="recordId" type="String" default="" required="true" />
+    <aura:attribute name="Settings" type="Object" required="true" />
+    <aura:attribute name="conDetail" type="contact" default="" required="true" />
+    <aura:attribute name="ordDetail" type="Order" default="" required="true" />
+    <aura:attribute name="CustomCustDetail" type="EBizCharge_Fields_Config__c" default="" required="true" />
+    <aura:attribute name="saveACHList" type="List" default="" required="true" />
+    <aura:attribute name="payByACHInfo" type="sObject" required="true" />
+    <aura:attribute name="disableSubmitBtn" type="boolean" default="true" required="true" />
+    <aura:attribute name="pps" type="sObject" required="true" />
+    <aura:attribute name="MethodName" type="string" default="" />
+    <aura:attribute name="ChieldActiveTab" type="string" default="" />
+    <aura:attribute name="paymentMethodIdSA" type="String" default="" />
+    <aura:attribute name="SendReceiptToSA" type="Boolean" default="false" />
+    <aura:attribute name="addEmailsSA" type="String" default="" />
+    <aura:attribute name="savedACHList" type="List" />
+    <aura:attribute name="acctypeoptions" type="List" default="[
+                             {'label': 'Checking', 'value': 'Checking'},
+                             {'label': 'Savings', 'value': 'Savings'}
+                             ]" />
+    <aura:attribute name="accHolderName" type="String" default="" />
+    <aura:attribute name="accNumber" type="String" default="" />
+    <aura:attribute name="accRoutNumber" type="String" default="" />
+    <aura:attribute name="accType" type="String" default="" />
+    <aura:attribute name="saveACH" type="Boolean" default="false" />
+    <aura:attribute name="SendReceiptTo" type="Boolean" default="false" />
+    <aura:attribute name="addEmails" type="String" default="" />
+    <aura:attribute name="placeholderSA" type="string" default="" />
+    <aura:method name="callChildFields" action="{!c.clearFields}" />
+    <aura:attribute name="savePaymentMethod" type="boolean" />
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+
+    <lightning:tabset variant="scoped" selectedTabId="savedACH">
+        <lightning:tab label="Use Saved Bank Account" id="savedACH" onactive="{!c.handleActiveTab}">
+            <div class="slds-form" role="list">
+                <div class="slds-form__row ">
+                    <div class="slds-form__item" role="listitem">
+                        <div class="slds-form-element slds-form-element_stacked">
+                            <lightning:combobox label="Select Saved Bank Account" aura:id='req-fieldSA' required="true" value="{!v.paymentMethodIdSA}" placeholder="{! v.placeholderSA }" options="{!v.saveACHList }" onchange="{!c.validateFormSA }" messageWhenValueMissing="Required Field"
+                            />
+                        </div>
+                    </div>
+                    <div class="slds-form__item" role="listitem">
+                        <div class="slds-grid slds-wrap  slds-m-left_xx-small">
+                            <ui:inputCheckbox labelClass="slds-float--right" class="slds-col slds-size_1-of-1 slds-cst-cbx_right" aura:id="sendCheckSA" label="Send receipt to (use comma ' , ' to separate multiple emails)" change="{!c.checkSendReceiptTo}" />
+                            <aura:renderIf isTrue="{!v.SendReceiptToSA}">
+                                <div class="slds-col slds-size_1-of-1">
+                                    <lightning:input aura:id="emailForm" variant="label-hidden" type="text" style="margin-bottom: 23px;" value="{!v.addEmailsSA}" onchange="{!c.validateBankEmail}" messageWhenPatternMismatch="Please enter a valid email or valid emails separated by a comma" pattern="^(([a-zA-Z0-9_\-\.]+)@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.)|(([a-zA-Z0-9\-]+\.)+))([a-zA-Z]{2,4}|[0-9]{1,3})(\]?)(\s*,\s*|\s*$))*$" required="true" messageWhenValueMissing="Required Field"
+                                    />
+                                </div>
+                            </aura:renderIf>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </lightning:tab>
+        <lightning:tab label="Add New Bank Account" id="addNewACH" onactive="{!c.handleActiveTab}">
+            <div class="slds-form" role="list">
+                <div class="slds-form__row">
+                    <div class="slds-form__item" role="listitem">
+                        <div class="slds-form-element slds-form-element_stacked">
+                            <lightning:input name="acctHolderName" type="text" label="Account Holder Name" aura:id='req-fields' required="true" value="{!v.accHolderName}" onchange="{!c.validateFormACH}" messageWhenValueMissing="Required Field" />
+                        </div>
+                    </div>
+                    <div class="slds-form__item" role="listitem">
+                        <div class="slds-form-element slds-form-element_stacked">
+                            <lightning:input label="Routing Number" aura:id='req-fields' required="true" value="{!v.accRoutNumber}" onchange="{!c.checkRoutLength}" pattern="[0-9]{9,9}" fieldLevelHelp="9 digit bank routing number" messageWhenPatternMismatch="Input numerical values for routing number"
+                                messageWhenValueMissing="Required Field" />
+                        </div>
+                    </div>
+                </div>
+                <div class="slds-form__row">
+                    <div class="slds-form__item" role="listitem">
+                        <div class="slds-form-element slds-form-element_stacked">
+                            <lightning:combobox name="acctypes" dropdownAlignment="right" label="Account Type" aura:id='req-fields' required="true" options="{! v.acctypeoptions }" value="{!v.accType}" onchange="{! c.validateFormACH }" messageWhenValueMissing="Required Field" />
+                        </div>
+                    </div>
+                    <div class="slds-form__item" role="listitem">
+                        <div class="slds-form-element slds-form-element_stacked">
+                            <lightning:input label="Account Number" aura:id='req-fields' required="true" value="{!v.accNumber}" onchange="{!c.validateFormACH}" minlength="9" maxlength="16" fieldLevelHelp="09 to 16 digit bank account number" messageWhenPatternMismatch="Input numerical values for account number"
+                                messageWhenValueMissing="Required Field" />
+                        </div>
+                    </div>
+                </div>
+                <div class="slds-form__row">
+                    <div class="slds-form__item" role="listitem">
+                        <div class="slds-form-element slds-form-element_stacked slds-size_2-of-4">
+                            <lightning:input label="Account Nickname" name="acctHolderName" type="text" value="{!v.MethodName}" onchange="{!c.validateFormACH}" />
+                        </div>
+                    </div>
+                </div>
+                <div class="slds-form__row slds-p-top_small">
+                    <div class="slds-form__item" role="listitem">
+                        <div class="slds-grid slds-wrap  slds-m-left_xx-small">
+                            <ui:inputCheckbox labelClass="slds-float--right" class="slds-col slds-size_1-of-1 slds-cst-cbx_right" aura:id="sendToCheck" label="Send receipt to (use comma ' , ' to separate multiple emails)" change="{!c.checkSendReceiptTo}" />
+                            <aura:renderIf isTrue="{!v.SendReceiptTo}">
+                                <div class="slds-col slds-size_1-of-1">
+                                    <lightning:input aura:id="emailForm" variant="label-hidden" type="text" value="{!v.addEmails}" onchange="{!c.validateAddBankEmail}" messageWhenPatternMismatch="Please enter a valid email or valid emails separated by a comma" pattern="^(([a-zA-Z0-9_\-\.]+)@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.)|(([a-zA-Z0-9\-]+\.)+))([a-zA-Z]{2,4}|[0-9]{1,3})(\]?)(\s*,\s*|\s*$))*$" required="true" messageWhenValueMissing="Required Field"
+                                    />
+                                </div>
+                            </aura:renderIf>
+                        </div>
+                    </div>
+
+                    <div class="slds-form__item" role="listitem">
+                        <aura:if isTrue="{!v.savePaymentMethod}">
+                         <div class="slds-form-element slds-p-left_xx-small">
+                            <ui:inputCheckbox labelClass="slds-float--right" class="slds-cst-cbx_right" aura:id="saveACHCheck" label="Save Bank Account" change="{!c.checksaveACH}" />
+                         </div>
+                        </aura:if>
+                    </div>
+                </div>
+            </div>
+        </lightning:tab>
+    </lightning:tabset>
+</aura:component>

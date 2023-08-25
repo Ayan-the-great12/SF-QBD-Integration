@@ -1,0 +1,76 @@
+<aura:component implements="flexipage:availableForRecordHome,force:hasRecordId,force:lightningQuickAction" access="global">
+    <aura:attribute name="isActive" type="Boolean" default="false" required="true" />
+    <aura:attribute name="CS" type="Object" default="" required="true" />
+    <aura:attribute name="recordId" type="String" default="" required="true" />
+    <aura:attribute name="isCustomObject" type="String" default="false" />
+
+    <aura:attribute name="ObjectName" type="String" default="" required="true" />
+    <aura:attribute name="showCmpPopUp" type="String" default="" required="true" />
+    <aura:attribute name="savedCard" type="List" />
+    <aura:attribute name="saveCardsExtendedList" type="List" />
+    <aura:attribute name="savedACH" type="List" />
+    <aura:attribute name="Transaction" type="Object" />
+    <aura:attribute name="ObjectConfig" type="EBiz_Object_Config__c" />
+    <aura:attribute name="obj" type="Object" />
+
+    <aura:attribute name="AmuontFieldsList" type="List" default="[]" />
+    <aura:attribute name="EmailFieldsList" type="List" default="[]" />
+    <aura:attribute name="NameFieldsList" type="List" default="[]" />
+
+    <aura:renderIf isTrue="{!v.isActive}">
+
+        <aura:if isTrue="{!v.showCmpPopUp == 'CompConfiguration'}">
+            <c:ComponentSettings ObjectName="{!v.ObjectName}" ObjectConfig="{!v.ObjectConfig}" isCustomObject="{!v.isCustomObject}" isOpen="{!v.isActive}" AmuontFieldsList="{!v.AmuontFieldsList}" EmailFieldsList="{!v.EmailFieldsList}" NameFieldsList="{!v.NameFieldsList}"
+                obj="{!v.obj}" />
+        </aura:if>
+
+        <aura:if isTrue="{!v.showCmpPopUp == 'CapturePayment'}">
+            <c:ComponentCapturePayment isOpen="{!v.isActive}" Settings="{!v.CS}" recordId="{!v.recordId}" ObjectName="{!v.ObjectName}" Transaction="{!v.Transaction}" />
+        </aura:if>
+
+        <aura:if isTrue="{!v.showCmpPopUp == 'ProcessPayment'}">
+            <aura:if isTrue="{!v.ObjectName == 'Contact'}">
+                <c:ComponentProcessPaymentContact isOpen="{!v.isActive}" Settings="{!v.CS}" recordId="{!v.recordId}" ObjectName="{!v.ObjectName}" saveCardsList="{!v.savedCard}" saveACHList="{!v.savedACH}" />
+
+                <aura:set attribute="else">
+
+                    <aura:if isTrue="{!v.isCustomObject}">
+                        <c:ComponentProcessPaymentCustomObject isOpen="{!v.isActive}" Settings="{!v.CS}" recordId="{!v.recordId}" ObjectName="{!v.ObjectName}" saveCardsList="{!v.savedCard}" saveACHList="{!v.savedACH}" />
+                        <aura:set attribute="else">
+                            <c:ComponentProcessPayment isOpen="{!v.isActive}" Settings="{!v.CS}" recordId="{!v.recordId}" ObjectName="{!v.ObjectName}" saveCardsList="{!v.savedCard}" saveACHList="{!v.savedACH}" saveCardsExtendedList="{!v.saveCardsExtendedList}" />
+                        </aura:set>
+                    </aura:if>
+                </aura:set>
+            </aura:if>
+        </aura:if>
+        <aura:if isTrue="{!v.showCmpPopUp == 'SendEmailPaymentRequest'}">
+            <c:ComponentEmailPay isOpen="{!v.isActive}" Settings="{!v.CS}" recordId="{!v.recordId}" ObjectName="{!v.ObjectName}" />
+        </aura:if>
+        <aura:if isTrue="{!v.showCmpPopUp == 'ScheduleRecurringPayment'}">
+            <aura:if isTrue="{!v.ObjectName == 'Contact'}">
+                <c:ComponentRecurringContact isOpen="{!v.isActive}" Settings="{!v.CS}" recordId="{!v.recordId}" ObjectName="{!v.ObjectName}" saveCardsList="{!v.savedCard}" saveACHList="{!v.savedACH}" />
+                <aura:set attribute="else">
+                    <aura:if isTrue="{!v.isCustomObject}">
+                        <c:ComponentRecurringCustomCustomer isOpen="{!v.isActive}" Settings="{!v.CS}" recordId="{!v.recordId}" ObjectName="{!v.ObjectName}" saveCardsList="{!v.savedCard}" saveACHList="{!v.savedACH}" />
+                        <aura:set attribute="else">
+                            <c:ComponentRecurring isOpen="{!v.isActive}" Settings="{!v.CS}" recordId="{!v.recordId}" ObjectName="{!v.ObjectName}" saveCardsList="{!v.savedCard}" saveACHList="{!v.savedACH}" />
+                        </aura:set>
+                    </aura:if>
+                </aura:set>
+            </aura:if>
+        </aura:if>
+        <aura:if isTrue="{!v.showCmpPopUp == 'RequestPaymentMethod'}">
+            <aura:if isTrue="{!v.ObjectName == 'Contact'}">
+                <c:ComponentReqAddPaymentMethodContact isOpen="{!v.isActive}" recordId="{!v.recordId}" ObjectName="{!v.ObjectName}" />
+                <aura:set attribute="else">
+                    <aura:if isTrue="{!v.isCustomObject}">
+                        <c:ComponentReqAddPaymentMethodCustomCustomer isOpen="{!v.isActive}" recordId="{!v.recordId}" ObjectName="{!v.ObjectName}" />
+                        <aura:set attribute="else">
+                            <c:ComponentReqAddPaymentMethod isOpen="{!v.isActive}" recordId="{!v.recordId}" ObjectName="{!v.ObjectName}" />
+                        </aura:set>
+                    </aura:if>
+                </aura:set>
+            </aura:if>
+        </aura:if>
+    </aura:renderIf>
+</aura:component>

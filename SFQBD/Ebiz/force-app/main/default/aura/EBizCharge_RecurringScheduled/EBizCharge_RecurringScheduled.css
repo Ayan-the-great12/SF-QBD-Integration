@@ -1,0 +1,94 @@
+.THIS .uiInput--input.input {
+    min-height: 0px !important;
+}
+
+.THIS .slds-size_1-of-3 {
+    width: 37% !important;
+}
+
+.THIS .slds-align-middle {
+    padding-top: 24px !important;
+}
+
+.THIS .cst-width .slds-form-element__label {
+    width: 110px !important;
+}
+
+.THIS .disclaimer {
+    position: fixed;
+    width: 100%;
+    left: 0;
+    margin-top: 1%;
+    font-weight: 600;
+}
+
+.THIS .disclaimer p {
+    text-align: center;
+}
+
+.THIS .slds-cst-cbx_right {
+    float: right;
+    margin-right: 15px;
+}
+
+
+.THIS .visa {
+    background-image: url("/resource/Ebiz_C__visaImage");
+    background-repeat: no-repeat, repeat;
+    
+}
+
+.THIS .master {
+    background-image: url("/resource/Ebiz_C__MasterCardImage");
+    background-repeat: no-repeat, repeat;
+    
+}
+
+.THIS .american {
+    background-image: url("/resource/Ebiz_C__AmericanExpressImage");
+    background-repeat: no-repeat, repeat;
+    
+}
+
+.THIS .discover {
+    background-image: url("/resource/Ebiz_C__DiscoverImage");
+    background-repeat: no-repeat, repeat;
+    
+}
+
+.THIS .ach {
+    background-image: url("/resource/Ebiz_C__CheckHomeImage");
+    background-repeat: no-repeat, repeat;
+    
+}
+
+.THIS .slds-align-middle {
+    padding-top: 16px !important;
+}
+
+.THIS .slds-form-element_compound .slds-form-element {
+    padding-left: 2px !important;
+}
+
+.THIS .slds-size_1-of-3 {
+    width: 34.333333% !important;
+}
+
+.THIS .slds-list_horizontal .slds-item_detail {
+    width: 200px !important;
+}
+
+.THIS .slds-list_horizontal .slds-item_label {
+    width: 190px !important;
+}
+
+.THIS hr {
+    margin: 1.2rem !important;
+}
+
+.THIS .slds-Modal-Schedule {
+    max-width: calc(100vh - 11px);
+    max-width: 95%;
+    overflow-y: hidden;
+    overflow-x: hidden
+}

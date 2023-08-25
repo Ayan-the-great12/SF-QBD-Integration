@@ -1,0 +1,491 @@
+<aura:component controller="EBC_ManageCustomerPaymentMethodsContact" implements="flexipage:availableForRecordHome" access="global">
+    <aura:attribute name="isOpen" type="Boolean" required="true" />
+    <aura:attribute name="accountId" type="String" required="true" />
+    <aura:attribute name="conInfo" type="contact" />
+    <aura:attribute name="savedCardList" type="List" />
+    <aura:attribute name="savedACHList" type="List" />
+    <aura:attribute name="CardInfo" type="Object" />
+    <aura:attribute name="AChInfo" type="Object" />
+    <aura:attribute name="CustomCustomerDetail" type="EBizCharge_Fields_Config__c" />
+    <aura:attribute name="Spinner" type="boolean" default="false" />
+    <aura:attribute name="disableSubmitBtn" type="boolean" default="true" required="true" />
+    <aura:attribute name="disableUpdateBtn" type="boolean" default="true" required="true" />
+    <aura:attribute name="enableReadOnly" type="boolean" default="false" required="true" />
+    <aura:attribute name="DelThisMethod" type="String" default="" />
+    <aura:attribute name="isDefault" type="Boolean" default="false" />
+    <aura:attribute name="isDelete" type="Boolean" default="false" />
+    <aura:attribute name="SelectedTab" type="String" default="CreditCard" />
+    <aura:attribute name="monthList" type="List" />
+    <aura:attribute name="yearList" type="List" />
+    <aura:attribute name="selectedCard" type="String" default="addnewcard" />
+    <aura:attribute name="selectedACH" type="String" default="addnewach" />
+
+    <aura:attribute name="avsAction" type="String" default="" />
+    <aura:attribute name="isAVSCheck" type="Boolean" default="true" />
+    <aura:attribute name="avsCheckModal" type="Boolean" default="false" />
+    <aura:attribute name="avsCheckModalHeader" type="String" default="Security Mismatch" />
+    <aura:attribute name="avsCheckAction" type="String" default="Mismatch" />
+    <aura:attribute name="avsRefNum" type="String" default="" />
+    <aura:attribute name="avsCardCode" type="String" default="" />
+    <aura:attribute name="avsAddress" type="String" default="" />
+    <aura:attribute name="avsZipCode" type="String" default="" />
+
+    <aura:attribute name="acctypeoptions" type="List" default="[
+                             {'label': 'Checking', 'value': 'Checking'},
+                             {'label': 'Savings', 'value': 'Savings'}
+                             ]" />
+
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+
+    <!--loading spinner start -->
+    <aura:if isTrue="{!v.Spinner}">
+        <div aura:id="spinnerId" class="slds-spinner_container" style="position: fixed;z-index: 9999;">
+            <lightning:spinner aura:id="Spinner" alternativeText="Loading" size="medium" variant="brand" />
+        </div>
+    </aura:if>
+    <!-- Loading spinner end-->
+
+    <aura:if isTrue="{!v.isOpen}">
+
+        <!--###### MODAL BOX Start######-->
+        <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1" class="slds-align--absolute-center slds-modal slds-fade-in-open slds-modal_large">
+            <div class="slds-modal__container">
+
+                <!-- ###### MODAL BOX HEADER Start ######-->
+                <header class="slds-modal__header">
+                    <lightning:buttonIcon iconName="utility:close" onclick="{! c.closeModel }" alternativeText="close" variant="bare-inverse" class="slds-modal__close" />
+                    <h2 id="modal-heading-01" class="slds-text-heading_medium slds-hyphenate">
+                        Manage Payment Methods
+                    </h2>
+                </header>
+                <!--=====================================-->
+
+                <!--###### MODAL BOX BODY Part Start######-->
+                <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1">
+                    <div class="slds-p-horizontal_x-small">
+                        <div class="slds-text-heading_small slds-text-title_bold slds-m-bottom_large">
+                            <lightning:icon iconName="utility:user" size="x-small" /> &nbsp; {!v.CustomCustomerDetail.Name}
+                        </div>
+
+                        <lightning:tabset selectedTabId="CreditCard">
+
+                            <lightning:tab label="Credit Cards" id="CreditCard" onactive="{! c.handleActiveTab }">
+                                <div class="slds-grid" style="border-radius:2px; border:solid 1.5px #e8e5e6">
+                                    <div class="slds-col slds-size_3-of-12" style="max-height:360px; overflow-y:auto;border-right: solid 1.5px #e8e5e6">
+                                        <nav class="slds-nav-vertical">
+                                            <div class="slds-nav-vertical__section">
+                                                <ul>
+                                                    <li class="slds-nav-vertical__item slds-is-active" aura:id="tab" data-id="0" onclick="{!c.CardHandler}">
+                                                        <a href="javascript:void(0);" class="slds-nav-vertical__action slds-color_blue">
+                                                            + Add New Card
+                                                        </a>
+                                                    </li>
+                                                    <aura:iteration items="{!v.savedCardList}" var="cc">
+                                                        <li class="slds-nav-vertical__item" aura:id="tab" data-id="{!cc.MethodID}" onclick="{!c.CardHandler}">
+                                                            <div class="slds-grid slds-wrap slds-nav-vertical__action">
+                                                                <div class="slds-col slds-size_1-of-2">
+                                                                    <span> {!cc.MethodName} </span>
+                                                                </div>
+                                                                <div class="slds-col slds-size_1-of-2">
+                                                                    <span class="slds-text-color_inverse-weak slds-p-left_small">
+                                                                        <aura:if isTrue="{!cc.SecondarySort == 0}">
+                                                                            <i>Default</i>
+                                                                        </aura:if>
+                                                                    </span>
+                                                                </div>
+                                                                <div class="slds-col slds-size_1-of-1 slds-p-vertical_xx-small">
+                                                                    <aura:if isTrue="{!cc.CardType == 'V'}">
+                                                                        <img src="{!$Resource.visaImage}" height="38" width="35" />
+                                                                    </aura:if>
+                                                                    <aura:if isTrue="{!cc.CardType == 'M'}">
+                                                                        <img src="{!$Resource.MasterCardImage}" height="38" width="35" />
+                                                                    </aura:if>
+                                                                    <aura:if isTrue="{!cc.CardType == 'A'}">
+                                                                        <img src="{!$Resource.AmericanExpressImage}" height="38" width="35" />
+                                                                    </aura:if>
+                                                                    <aura:if isTrue="{!cc.CardType == 'DS'}">
+                                                                        <img src="{!$Resource.DiscoverImage}" height="38" width="35" />
+                                                                    </aura:if>
+                                                                    <span class="slds-p-left_small">ending in {!cc.Last4Degit}</span>
+                                                                </div>
+                                                            </div>
+                                                        </li>
+                                                    </aura:iteration>
+                                                </ul>
+                                            </div>
+                                        </nav>
+                                    </div>
+                                    <div class="slds-col slds-size_9-of-12">
+                                        <div class="slds-text-title_bold slds-p-around_large">
+                                            <aura:renderIf isTrue="{!v.selectedCard == 'addnewcard'}">
+                                                Add New Card
+                                                <aura:set attribute="else">
+                                                    <aura:if isTrue="{!v.CardInfo.CardType == 'V'}">
+                                                        <img src="{!$Resource.visaImage}" height="38" width="35" />
+                                                    </aura:if>
+                                                    <aura:if isTrue="{!v.CardInfo.CardType == 'M'}">
+                                                        <img src="{!$Resource.MasterCardImage}" height="38" width="35" />
+                                                    </aura:if>
+                                                    <aura:if isTrue="{!v.CardInfo.CardType == 'A'}">
+                                                        <img src="{!$Resource.AmericanExpressImage}" height="38" width="35" />
+                                                    </aura:if>
+                                                    <aura:if isTrue="{!v.CardInfo.CardType == 'DS'}">
+                                                        <img src="{!$Resource.DiscoverImage}" height="38" width="35" />
+                                                    </aura:if>
+
+                                                    {! v.selectedCard } {!v.CardInfo.Last4Degit}
+                                                </aura:set>
+                                            </aura:renderIf>
+                                        </div>
+
+                                        <div class="slds-form slds-p-horizontal_x-large" role="list">
+                                            <div class="slds-form" role="list">
+                                                <div class="slds-form__row slds-p-bottom_xx-small">
+                                                    <div class="slds-form__item" role="listitem">
+                                                        <div class="slds-form-element slds-form-element_stacked">
+                                                            <lightning:input label="Card Number" aura:id='req-fields' required="true" readonly="{!v.enableReadOnly}" value="{!v.CardInfo.CardNumber}" onchange="{!c.checkLengthCard}" messageWhenPatternMismatch="Input a valid 16-digit card number" messageWhenValueMissing="Required Field"
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                    <div class="slds-form__item" role="listitem">
+                                                        <div class="slds-form-element slds-form-element_stacked">
+                                                            <lightning:input label="Billing Address" type="text" aura:id='req-fields' required="true" value="{!v.CardInfo.AvsStreet}" onchange="{!c.validateFormAC}" messageWhenValueMissing="Required Field" />
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div class="slds-form__row slds-p-bottom_xx-small">
+                                                    <div class="slds-form__item" role="listitem">
+                                                        <div class="slds-form-element slds-form-element_stacked">
+                                                            <lightning:input label="Cardholder Name" type="text" aura:id='req-fields' required="true" value="{!v.CardInfo.AccountHolderName}" onchange="{!c.validateFormAC}" messageWhenValueMissing="Required Field" />
+                                                        </div>
+                                                    </div>
+                                                    <div class="slds-form__item" role="listitem">
+                                                        <fieldset class="slds-form-element slds-form-element_compound slds-form-element_stacked">
+                                                            <div class="slds-form-element__row">
+
+                                                                <div class="slds-size_1-of-3" style="width:35%">
+                                                                    <div class="slds-form-element">
+                                                                        <lightning:input label="Zip/Postal Code" aura:id='req-fields' required="true" value="{!v.CardInfo.AvsZip}" oncommit="{!c.checkLengthZip}" messageWhenValueMissing="Required Field" />
+                                                                    </div>
+                                                                </div>
+                                                                <div class="slds-size_1-of-3" style="width:34%;">
+                                                                    <div class="slds-form-element">
+                                                                        <lightning:combobox name="month" label="Exp. Month" aura:id='req-fields' required="true" value="{!v.CardInfo.CardExpMonth}" placeholder="MM" class="cst-width" options="{! v.monthList }" onchange="{! c.validateFormAC }" messageWhenValueMissing="Required Field"
+                                                                        />
+                                                                    </div>
+                                                                </div>
+                                                                <div class="slds-size_1-of-3" style="width:28%;">
+                                                                    <div class="slds-form-element">
+                                                                        <lightning:combobox name="year" dropdownAlignment="right" label="Exp. Year" aura:id='req-fields' placeholder="YYYY" options="{! v.yearList }" value="{!v.CardInfo.CardExpYear}" onchange="{! c.validateFormAC }" required="true" messageWhenValueMissing="Required Field"
+                                                                        />
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </fieldset>
+                                                    </div>
+                                                </div>
+                                                <div class="slds-form__row slds-p-bottom_xx-small">
+                                                    <div class="slds-form__item" role="listitem">
+                                                        <div class="slds-form-element slds-form-element_stacked">
+                                                            <lightning:input label="Card Nickname" type="text" value="{!v.CardInfo.MethodName}" />
+                                                        </div>
+                                                    </div>
+                                                    <div class="slds-form__item" role="listitem">
+                                                        <div class="slds-size_1-of-2" style="width:40%">
+                                                            <div class="slds-form-element slds-form-element_stacked">
+                                                                <lightning:input label="CVC/CVV" pattern="[0-9]{3,4}" value="{!v.CardInfo.CardCode}" onchange="{!c.checkLengthCVC}" messageWhenPatternMismatch="Input a valid CVC/CVV code" fieldLevelHelp="A card's security code, or CVC/CVV, provides an additional level of online fraud protection. The number is located on your credit card and is generally three to four digits long.
+                                                                                                 On Visa, Mastercard, and Discover cards, the CVV is a three digit non-embossed number on the back of the card printed within the signature panel after the account number. On American Express cards, it is a four digit-nonembossed number on the face of the card."
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                        <div class="slds-p-left_small" style="padding-top: 28px;">
+                                                            <ui:inputCheckbox labelClass="slds-float--right" class="slds-cst-cbx_right" aura:id="setCCdefault" label="Save card as default" change="{!c.checkDefault}" />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="slds-m-top_small">
+                                                <div class="slds-float_left slds-p-top_xx-small">
+                                                    <aura:renderIf isTrue="{!v.selectedCard != 'addnewcard'}">
+                                                        <a href="javascript:void(0);" class="slds-text-title_bold slds-text-color_destructive" onclick="{!c.DeleteHandler}">Delete Card</a>
+                                                    </aura:renderIf>
+                                                </div>
+                                                <div class="slds-float_right slds-m-bottom_small">
+                                                    <aura:renderIf isTrue="{!v.selectedCard != 'addnewcard'}">
+                                                        <lightning:button variant="brand" label="Update Card" onclick="{!c.UpdateHandler}" disabled="{!v.disableUpdateBtn}" />
+                                                        <aura:set attribute="else">
+                                                            <lightning:button variant="brand" label="Verify &amp; Save Card" onclick="{! c.SaveHandler }" disabled="{!v.disableSubmitBtn}" />
+                                                        </aura:set>
+                                                    </aura:renderIf>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </lightning:tab>
+                            <!--===================================-->
+                            <lightning:tab label="Bank Accounts" id="ACH" onactive="{! c.handleActiveTab }">
+                                <div class="slds-grid" style="border-radius:2px; border:solid 1.5px #e8e5e6">
+                                    <div class="slds-col slds-size_3-of-12" style="max-height:360px; overflow-y:auto;border-right: solid 1.5px #e8e5e6">
+                                        <nav class="slds-nav-vertical">
+                                            <div class="slds-nav-vertical__section">
+                                                <ul>
+                                                    <li class="slds-nav-vertical__item slds-is-active" aura:id="tabACH" data-id="0" onclick="{!c.ACHHandler}">
+                                                        <a href="javascript:void(0);" class="slds-nav-vertical__action slds-color_blue">
+                                                            + Add New Bank Account
+                                                        </a>
+                                                    </li>
+                                                    <aura:iteration items="{!v.savedACHList}" var="ach">
+                                                        <li class="slds-nav-vertical__item" aura:id="tabACH" data-id="{!ach.MethodID}" onclick="{!c.ACHHandler}">
+                                                            <div class="slds-grid slds-wrap slds-nav-vertical__action">
+                                                                <div class="slds-col slds-size_1-of-2">
+                                                                    <span> {!ach.MethodName} </span>
+                                                                </div>
+                                                                <div class="slds-col slds-size_1-of-2">
+                                                                    <span class="slds-text-color_inverse-weak slds-p-left_small">
+                                                                        <aura:if isTrue="{!ach.SecondarySort == 0}">
+                                                                            <i>Default</i>
+                                                                        </aura:if>
+                                                                    </span>
+                                                                </div>
+                                                                <div class="slds-col slds-size_1-of-1 slds-p-vertical_xx-small">
+                                                                    <img src="{!$Resource.CheckHomeImage}" height="38" width="35" />
+                                                                    <span class="slds-p-left_small">ending in {!ach.Last4Degit}</span>
+                                                                </div>
+                                                            </div>
+                                                        </li>
+                                                    </aura:iteration>
+                                                </ul>
+                                            </div>
+                                        </nav>
+                                    </div>
+                                    <div class="slds-col slds-size_9-of-12">
+                                        <div class="slds-text-title_bold slds-p-around_large">
+                                            <aura:renderIf isTrue="{!v.selectedACH == 'addnewach'}">
+                                                Add New Bank Account
+                                                <aura:set attribute="else">
+                                                    <img src="{!$Resource.CheckHomeImage}" height="38" width="35" /> {! v.selectedACH } {!v.AChInfo.Last4Degit}
+                                                </aura:set>
+                                            </aura:renderIf>
+                                        </div>
+                                        <div class="slds-form slds-p-horizontal_x-large" role="list">
+                                            <div class="slds-form" role="list">
+                                                <div class="slds-form__row slds-p-bottom_x-small">
+                                                    <div class="slds-form__item" role="listitem">
+                                                        <div class="slds-form-element slds-form-element_stacked">
+                                                            <lightning:input name="acctHolderName" type="text" label="Account Holder Name" aura:id='reqfield' required="true" value="{!v.AChInfo.AccountHolderName}" onchange="{!c.validateFormACH}" messageWhenValueMissing="Required Field" />
+                                                        </div>
+                                                    </div>
+                                                    <div class="slds-form__item" role="listitem">
+                                                        <div class="slds-form-element slds-form-element_stacked">
+                                                            <lightning:input label="Routing Number" aura:id='reqfield' required="true" readonly="{!v.enableReadOnly}" value="{!v.AChInfo.Routing}" onchange="{!c.checkRoutLength}" pattern="[0-9]{8,9}" fieldLevelHelp="8 or 9 digit bank routing number" messageWhenPatternMismatch="Input numerical values for routing number"
+                                                                messageWhenValueMissing="Required Field" />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="slds-form__row slds-p-bottom_x-small">
+                                                    <div class="slds-form__item" role="listitem">
+                                                        <div class="slds-form-element slds-form-element_stacked">
+                                                            <lightning:combobox name="acctypes" dropdownAlignment="right" label="Account Type" aura:id='reqfield' required="true" options="{! v.acctypeoptions }" value="{!v.AChInfo.AccountType}" onchange="{! c.validateFormACH }" messageWhenValueMissing="Required Field"
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                    <div class="slds-form__item" role="listitem">
+                                                        <div class="slds-form-element slds-form-element_stacked">
+                                                            <lightning:input label="Account Number" aura:id='reqfield' required="true" readonly="{!v.enableReadOnly}" value="{!v.AChInfo.Account}" minlength="9" maxlength="16" onchange="{!c.checkAccountLength}" fieldLevelHelp="9 to 16 digit bank account number" messageWhenPatternMismatch="Input numerical values for account number"
+                                                                messageWhenValueMissing="Required Field" />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="slds-form__row slds-p-bottom_x-small">
+                                                    <div class="slds-form__item" role="listitem">
+                                                        <div class="slds-form-element slds-form-element_stacked">
+                                                            <lightning:input label="Account Nickname" type="text" value="{!v.AChInfo.MethodName}" />
+                                                        </div>
+                                                    </div>
+                                                    <div class="slds-form__item" role="listitem">
+                                                        <div class="slds-form-element slds-align-middle slds-m-left_xx-small">
+                                                            <ui:inputCheckbox labelClass="slds-float--right" class="slds-col slds-size_1-of-1 slds-cst-cbx_right" aura:id="setACHdefault" label="Save account as default" change="{!c.checkDefault}" />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="slds-m-top_small">
+                                                <div class="slds-float_left slds-p-top_xx-small">
+                                                    <aura:renderIf isTrue="{!v.selectedACH != 'addnewach'}">
+                                                        <a href="javascript:void(0);" class="slds-text-title_bold slds-text-color_destructive" onclick="{!c.DeleteHandler}">Delete Account</a>
+                                                    </aura:renderIf>
+                                                </div>
+                                                <div class="slds-float_right slds-m-bottom_small">
+                                                    <aura:renderIf isTrue="{!v.selectedACH != 'addnewach'}">
+                                                        <lightning:button variant="brand" label="Update Account" onclick="{! c.UpdateHandler }" disabled="{!v.disableUpdateBtn}" />
+                                                        <aura:set attribute="else">
+                                                            <lightning:button variant="brand" label="Save Account" onclick="{! c.SaveHandler }" disabled="{!v.disableSubmitBtn}" />
+                                                        </aura:set>
+                                                    </aura:renderIf>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </lightning:tab>
+                        </lightning:tabset>
+                    </div>
+                </div>
+                <!--========================================-->
+
+                <!--###### MODAL BOX FOOTER Part Start ######-->
+                <footer class="slds-modal__footer">
+                    <lightning:button variant="neutral" label="Close" title="Close" onclick="{! c.closeModel }" />
+                </footer>
+                <!--========================================-->
+
+            </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open"></div>
+        <!--###### MODAL BOX Part END Here ######-->
+    </aura:if>
+
+    <aura:if isTrue="{!v.isDelete}">
+        <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+
+            <div class="slds-modal__container">
+                <!-- ###### MODAL BOX HEADER Start ######-->
+                <header class="slds-modal__header slds-theme_error slds-theme_alert-texture">
+                    <lightning:buttonIcon iconName="utility:close" onclick="{! c.closeModel }" alternativeText="close" variant="bare-inverse" class="slds-modal__close" />
+                    <h2 id="modal-heading-01" class="slds-text-heading_medium">Delete Payment Method</h2>
+                </header>
+                <!--###### MODAL BOX BODY Part Start######-->
+                <div class="slds-modal__content slds-p-around_large" id="modal-content-id-1">
+                    <p class="slds-text-align_center slds-text-title_bold">
+                        Are you sure you want to delete the payment method ending in
+                        <aura:if isTrue="{!v.SelectedTab == 'CreditCard'}">
+                            {!v.CardInfo.Last4Degit}
+                            <aura:set attribute="else">
+                                {!v.AChInfo.Last4Degit}
+                            </aura:set>
+                        </aura:if>
+                        ?
+                    </p>
+                </div>
+                <!--###### MODAL BOX FOOTER Part Start ######-->
+                <footer class="slds-modal__footer">
+                    <lightning:button variant="neutral" label="Return to Screen" onclick="{! c.returnToScreen }" />
+                    <lightning:button variant="brand" label="Delete Now" onclick="{! c.DeletePaymentMethod }" />
+                </footer>
+            </div>
+        </section>
+    </aura:if>
+
+    <aura:if isTrue="{!v.avsCheckModal}">
+        <!--###### MODAL BOX Start######-->
+        <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+            <div class="slds-modal__container">
+                <!-- ###### MODAL BOX HEADER Start ######-->
+                <header class="slds-modal__header slds-theme_error slds-theme_alert-texture">
+                    <lightning:buttonIcon iconName="utility:close" onclick="{! c.closeModel }" alternativeText="close" variant="bare-inverse" class="slds-modal__close" />
+                    <h2 id="modal-heading-01" class="slds-text-heading_medium">{!v.avsCheckModalHeader}</h2>
+                </header>
+                <!--###### MODAL BOX BODY Part Start######-->
+                <div class="slds-modal__content slds-p-vertical_medium slds-text-align_center" id="modal-content-id-1">
+
+                    <aura:if isTrue="{!v.avsCheckAction == 'Mismatch'}">
+                        <aura:if isTrue="{!not(empty(v.avsZipCode))}">
+                            <p class="slds-p-vertical_xx-small"> Address:
+                                <aura:if isTrue="{!v.avsAddress == 'Not Compatible'}">
+                                    <span class="slds-p-left_medium slds-text-color_destructive ">Not Compatible</span>
+                                    <aura:set attribute="else">
+                                        <aura:if isTrue="{!v.avsAddress == 'AddressNotMatch'}">
+                                            <span class="slds-p-left_xx-large slds-text-color_destructive ">Not a
+                                                match</span>
+                                            <aura:set attribute="else">
+                                                <span class="slds-p-left_xx-large"> Match </span>
+                                            </aura:set>
+                                        </aura:if>
+                                    </aura:set>
+                                </aura:if>
+                            </p>
+                            <p class="slds-p-vertical_xx-small"> Zip/Postal Code:
+                                <aura:if isTrue="{!v.avsZipCode == 'Not Compatible'}">
+                                    <span class="slds-p-left_medium slds-text-color_destructive ">Not Compatible</span>
+                                    <aura:set attribute="else">
+                                        <aura:if isTrue="{!v.avsZipCode == 'ZipNotMatch'}">
+                                            <span class="slds-p-left_medium slds-text-color_destructive ">Not a match</span>
+                                            <aura:set attribute="else">
+                                                <span class="slds-p-left_medium"> Match </span>
+                                            </aura:set>
+                                        </aura:if>
+                                    </aura:set>
+                                </aura:if>
+
+                            </p>
+                        </aura:if>
+
+                        <p class="slds-p-vertical_xx-small slds-m-bottom_small"> CVV2/CVC:
+                            <aura:if isTrue="{!v.avsCardCode == 'CardCodeNotMatch'}">
+                                <span class="slds-p-left_large slds-text-color_destructive ">Not a match</span>
+                                <aura:set attribute="else">
+                                    <span class="slds-p-left_large"> Match</span>
+                                </aura:set>
+                            </aura:if>
+                        </p>
+
+                        <aura:if isTrue="{!empty(v.avsZipCode)}">
+                            <p class="slds-p-vertical_xx-small slds-m-bottom_small"> AVS Result:
+                                <aura:if isTrue="{!v.avsAddress == 'Card Number Not On File'}">
+                                    <span class="slds-p-left_large slds-text-color_destructive ">Card Number Not On File</span>
+                                </aura:if>
+                                <aura:if isTrue="{!v.avsAddress == 'Address Information not verified for domestic transaction'}">
+                                    <span class="slds-p-left_large slds-text-color_destructive ">Address Information not verified for domestic transaction</span>
+                                </aura:if>
+                                <aura:if isTrue="{!v.avsAddress == 'Retry / System Unavailable'}">
+                                    <span class="slds-p-left_large slds-text-color_destructive ">Retry / System Unavailable</span>
+                                </aura:if>
+                                <aura:if isTrue="{!v.avsAddress == 'Service Not Supported'}">
+                                    <span class="slds-p-left_large slds-text-color_destructive ">Service Not Supported</span>
+                                </aura:if>
+                                <aura:if isTrue="{!v.avsAddress == 'Address Verification Not Allowed For Card Type'}">
+                                    <span class="slds-p-left_large slds-text-color_destructive ">Address Verification Not Allowed For Card Type</span>
+                                </aura:if>
+                                <aura:if isTrue="{!v.avsAddress == 'Global Non-AVS participant'}">
+                                    <span class="slds-p-left_large slds-text-color_destructive ">Global Non-AVS participant</span>
+                                </aura:if>
+                            </p>
+                        </aura:if>
+
+                        <p class="slds-p-vertical_xx-small"> Using this card for a future transaction could result in a charge back. Do you still wish to save this card?</p>
+                        <p class="slds-p-vertical_xx-small"> Do you still wish to accept?</p>
+
+                        <p class="slds-m-vertical_large">
+                            <lightning:button variant="brand" label="Update and Retry" title="Update and Retry" class="slds-p-horizontal_small" onclick="{! c.UpdateRetryHandler }" />
+                        </p>
+                        <aura:set attribute="else">
+                            <p class="slds-p-vertical_x-small">
+                                Are you sure you want to void this transaction?
+                            </p>
+                            <p class="slds-p-vertical_x-small">
+                                Reference Number: {!v.avsRefNum}
+                            </p>
+                        </aura:set>
+                    </aura:if>
+
+                </div>
+                <!--###### MODAL BOX FOOTER Part Start ######-->
+                <footer class="slds-modal__footer">
+                    <aura:if isTrue="{!v.avsCheckAction == 'Mismatch'}">
+                        <lightning:button variant="neutral" label="Cancel" title="Cancel" onclick="{! c.CancelTransactionHandler }" />
+                        <lightning:button variant="destructive-text" label="Save card anyway" title="Save card anyway" onclick="{! c.AcceptTransactionHandler }" />
+
+                        <aura:set attribute="else">
+                            <lightning:button variant="neutral" label="Cancel" title="Cancel" onclick="{! c.cancelHandler }" />
+                            <lightning:button variant="destructive-text" label="Yes, void now" title="Yes, void now" onclick="{! c.voideHandler }" />
+                        </aura:set>
+                    </aura:if>
+                </footer>
+            </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open"></div>
+        <!--###### MODAL BOX Part END Here ######-->
+    </aura:if>
+</aura:component>

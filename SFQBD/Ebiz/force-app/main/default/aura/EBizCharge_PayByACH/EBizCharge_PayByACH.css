@@ -1,0 +1,8 @@
+.THIS .slds-form__row {
+    margin-bottom: calc(1 * var(--lwc-spacingSmall, 0.75rem)) !important;
+}
+
+.THIS .slds-dropdown-trigger .slds-dropdown {
+    height: 100px !important;
+    overflow: auto;
+}

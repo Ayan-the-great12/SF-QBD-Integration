@@ -1,0 +1,103 @@
+<aura:component controller="eBc_EmailPayController">
+
+    <aura:attribute name="parentComp" type="Aura.Component" required="true" />
+    <aura:attribute type="String" name="sortField" />
+    <aura:attribute type="Boolean" name="sortAsc" default="true" />
+    <aura:attribute type="Integer" name="pageNumber" default="1" />
+    <aura:attribute type="Integer" name="maxPage" default="1" />
+    <aura:attribute name="Spinner" type="boolean" default="false" />
+    <aura:attribute name="showModal" type="boolean" default="false" />
+    <aura:attribute name="disableFindBtn" type="boolean" default="false" />
+    <aura:attribute name="disableBtns" type="boolean" default="true" />
+    <aura:attribute name="disableClearBtn" type="boolean" default="true" />
+    <aura:attribute name="FromDate" type="date" default="" />
+    <aura:attribute name="ToDate" type="date" default="" />
+    <aura:attribute name="isSelectAll" type="boolean" default="false" />
+    <aura:attribute name="NoOfSelectedRecords" type="Integer" default="0" />
+    <aura:attribute name="pendingPayList" type="List" />
+    <aura:attribute name="SelectedpendingPayList" type="List" />
+    <aura:attribute name="actionStr" type="String" default="" />
+    <aura:handler name="init" value="{! this }" action="{! c.doInit }" />
+
+    <!-- =====Data table attribute == -->
+    <aura:attribute name="DataColumns" type="List" />
+    <aura:attribute name="TranscationsData" type="Object" />
+    <aura:attribute name="sortBy" type="String" />
+    <aura:attribute name="sortDirection" type="String" />
+    <aura:attribute name="maxRowSelection" type="Integer" default="50" />
+    <aura:attribute name="selectedRowsCount" type="Integer" default="0" />
+
+    <!-- =========== -->
+    <!--loading spinner-->
+    <aura:if isTrue="{!v.Spinner}">
+        <div aura:id="spinnerId" class="slds-spinner_container" style="position: fixed;">
+            <lightning:spinner aura:id="Spinner" alternativeText="Loading" size="medium" variant="brand" />
+        </div>
+    </aura:if>
+    <!-- =========== -->
+
+    <div class="container">
+        <!-- Filter Block -->
+        <div class="slds-form" role="list">
+            <div class="slds-form__row">
+                <div class="slds-form__item slds-size_1-of-5" role="listitem">
+                    <div class="slds-form-element slds-form-element_stacked">
+                        <lightning:input type="date" dateStyle="short" label="Emails Sent From" onchange="{!c.validateDate}" value="{!v.FromDate}" />
+                    </div>
+                </div>
+                <div class="slds-form__item slds-size_1-of-5" role="listitem">
+                    <div class="slds-form-element slds-form-element_stacked">
+                        <lightning:input type="date" dateStyle="short" label="To" value="{!v.ToDate}" onchange="{!c.validateDate}" />
+                    </div>
+                </div>
+                <div class="slds-form__item slds-size_1-of-5" role="listitem">
+                    <div class="slds-align-middle">
+                        <lightning:button variant="brand" label="Find" title="Find" disabled="{!v.disableFindBtn}" onclick="{! c.searchPendingPayments }" />
+                    </div>
+                    <div class="slds-align-middle slds-m-left_x-small">
+                        <lightning:button variant="brand" label="Show All" title="Show All" onclick="{! c.searchAllPendingPayments }" />
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- =========== -->
+        <!-- ===== Filter Grid ===== -->
+        <div class="slds-form" role="list">
+            <div class="slds-form__row">
+                <div class="slds-form__item slds-align-bottom" role="listitem">
+                    <h1>Showing pending payment requests
+                        <lightning:badge label="{!v.NoOfSelectedRecords}" iconName="utility:success" />
+                    </h1>
+                </div>
+
+                <div class="slds-form__item slds-size_1-of-6" role="listitem">
+                    <div class="slds-align-bottom">
+                        <lightning:button variant="brand" label="Remove from list" title="Remove from list" disabled="{!v.disableBtns}" onclick="{! c.removePendingPayment }" />
+                    </div>
+                    <div class="slds-align-bottom slds-m-left_x-small">
+                        <lightning:button variant="brand" label="Resend" title="Resend Request" disabled="{!v.disableBtns}" onclick="{! c.SendEmailNow }" />
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- =========== -->
+
+        <!-- ===== Email Table Grid ===== -->
+        <div class="slds-m-vertical_small">
+            <div style="height :800px; width:100%">
+                <aura:renderIf isTrue="{!v.pendingPayList.length &gt; 0}">
+                    <lightning:datatable aura:id="pendingPayList" keyField="Id" hideCheckboxColumn="false" columns="{!v.DataColumns}" data="{!v.pendingPayList}" sortedBy="{!v.sortBy}" sortedDirection="{!v.sortDirection}" onsort="{!c.handleSort}" onrowaction="{! c.handleRowAction }"
+                        onrowselection="{! c.updateSelectedText }" />
+                    <aura:set attribute="else">
+                        <div class="slds-illustration slds-illustration_small">
+                            <img src="{!$Resource.EmptyState}" />
+                        </div>
+                    </aura:set>
+                </aura:renderIf>
+            </div>
+        </div>
+        <!-- ============================ -->
+        <center><i class="helperTEXT"> Date and Time displayed in UTC coordinated universal time clock</i></center>
+        <c:EBizCharge_modalEmailPay isOpen="{!v.showModal}" actionStr="{!v.actionStr}" NoOfSelectedRecords="{!v.NoOfSelectedRecords}" UpdatedpendingPayList="{!v.pendingPayList}" pendingPayList="{!v.SelectedpendingPayList}" />
+    </div>
+</aura:component>

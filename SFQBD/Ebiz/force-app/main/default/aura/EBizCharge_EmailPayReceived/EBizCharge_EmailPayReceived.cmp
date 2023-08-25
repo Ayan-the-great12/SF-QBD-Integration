@@ -1,0 +1,151 @@
+<aura:component controller="eBc_EmailPayController">
+    <aura:attribute name="parentComp" type="Aura.Component" required="true" />
+    <aura:attribute name="Spinner" type="boolean" default="false" />
+
+    <aura:attribute type="String" name="sortField" />
+    <aura:attribute type="Boolean" name="sortAsc" default="true" />
+    <aura:attribute type="Integer" name="pageNumber" default="1" />
+    <aura:attribute type="Integer" name="maxPage" default="1" />
+    <aura:attribute type="Integer" name="MaxRecords" default="100" />
+    <aura:attribute name="isOpen" type="boolean" default="false" />
+    <aura:attribute name="disableBtns" type="boolean" default="true" />
+    <aura:attribute name="selectedLookUpAccRecord" type="sObject" default="{}" access="public" />
+    <aura:attribute name="fromDate" type="date" default="" />
+    <aura:attribute name="toDate" type="date" default="" />
+    <aura:attribute name="disableFindBtn" type="boolean" default="false" />
+    <aura:attribute name="receivedPayList" type="List" />
+
+    <aura:attribute name="SelectedRecords" type="Object" />
+    <!-- =====Data table attribute == -->
+    <aura:attribute name="DataColumns" type="List" />
+    <aura:attribute name="TranscationsData" type="Object" />
+    <aura:attribute name="sortBy" type="String" />
+    <aura:attribute name="sortDirection" type="String" />
+    <aura:attribute name="maxRowSelection" type="Integer" default="50" />
+    <aura:attribute name="selectedRowsCount" type="Integer" default="0" />
+    <aura:attribute name="loadMoreOffset" type="Integer" default="20" />
+
+    <aura:attribute name="isActive" type="boolean" default="false" />
+    <aura:attribute type="Boolean" name="disableApplyButton" default="true" />
+    <!-- =========== -->
+
+    <aura:handler name="callParentCmpMethod" action="{!c.handleCompEvent}" event="c:ParentEvent" />
+
+    <aura:handler name="init" value="{! this }" action="{! c.doInit }" />
+
+    <aura:handler name="sampleComponentEvent" event="c:ApplyPayments" action="{!c.handleComponentEvent}" />
+    <!-- =========== -->
+
+    <!--loading spinner-->
+    <aura:if isTrue="{!v.Spinner}">
+        <div aura:id="spinnerId" class="slds-spinner_container" style="position: fixed">
+            <lightning:spinner aura:id="Spinner" alternativeText="Loading" size="medium" variant="brand" />
+        </div>
+    </aura:if>
+    <!-- =========== -->
+
+    <div class="container">
+        <!-- Filter Block -->
+        <div class="slds-grid" role="list">
+            <div class="slds-size_2-of-8" role="listitem">
+                <div class="slds-form-element slds-form-element_stacked">
+                    <c:EBizCharge_CustomLookupRecurring objectAPIName="account" IconName="standard:account" selectedRecord="{!v.selectedLookUpAccRecord}" label="Select an Account / Contact" />
+                </div>
+            </div>
+            <div class="slds-size_1-of-7 slds-m-left_medium" role="listitem">
+                <div class="slds-form-element slds-form-element_stacked">
+                    <lightning:input type="date" dateStyle="short" label="Payments Received From" value="{!v.fromDate}" onchange="{!c.validateDate}" />
+                </div>
+            </div>
+            <div class="slds-size_1-of-7" role="listitem">
+                <div class="slds-form-element slds-form-element_stacked">
+                    <lightning:input type="date" dateStyle="short" label="To" value="{!v.toDate}" onchange="{!c.validateDate}" />
+                </div>
+            </div>
+
+            <div class="slds-size_1-of-8" role="listitem">
+                <div class="slds-form-element slds-form-element_stacked">
+                    <div class="slds-align-middle">
+                        <lightning:button variant="brand" label="Find" title="Find" disabled="{!v.disableFindBtn}" onclick="{! c.findReceivedPayments }" />
+                        <lightning:button variant="brand" label="Show All" title="Show All" onclick="{! c.searchAllReceivedPayments }" />
+                    </div>
+                </div>
+            </div>
+            <div class="slds-size_1-of-8 slds-m-left_medium" role="listitem" style="padding-top: 2px">
+                <div class="slds-form-element slds-form-element_stacked">
+
+                </div>
+            </div>
+        </div>
+        <!-- =========== -->
+
+        <div class="container" style="margin-bottom: 4px;">
+            <!-- Filter Block -->
+            <div class="slds-grid" role="list">
+                <div class="slds-size_3-of-4" role="listitem">
+                    <div class="slds-form-element slds-form-element_stacked" style="padding-top: 4px;">
+                        <h1>Showing payments to apply
+                            <lightning:badge label="{!v.selectedRowsCount}" iconName="utility:success" />
+                        </h1>
+                    </div>
+                </div>
+
+                <div class="slds-size_1-of-4" role="listitem">
+                    <div class="slds-form-element slds-form-element_stacked">
+                        <aura:renderIf isTrue="{!v.receivedPayList.length &gt; 0}">
+                            <lightning:button class="slds-float_right" variant="brand" label="Apply" title="Apply" disabled="{!v.disableApplyButton}" onclick="{! c.applyPayments }" />
+                        </aura:renderIf>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div style="height: 800px; width: 100%">
+            <aura:renderIf isTrue="{!v.receivedPayList.length &gt; 0}">
+                <lightning:datatable aura:id="receivedPayList" keyField="Id" hideCheckboxColumn="false" columns="{!v.DataColumns}" data="{!v.receivedPayList}" sortedBy="{!v.sortBy}" sortedDirection="{!v.sortDirection}" loadMoreOffset="{! v.loadMoreOffset }" onsort="{!c.handleSort}"
+                    onrowaction="{! c.handleSelectAction}" onrowselection="{! c.updateSelectedText }" />
+
+                <aura:set attribute="else">
+                    <div class="slds-illustration slds-illustration_small">
+                        <img src="{!$Resource.EmptyState}" />
+                    </div>
+                </aura:set>
+            </aura:renderIf>
+        </div>
+
+        <br />
+        <!-- ============================ -->
+        <center>
+            <i class="helperTEXT">
+                Date and Time displayed in UTC coordinated universal time clock</i>
+        </center>
+    </div>
+    <c:ModalApplyPayments isActive="{!v.isActive}" />
+
+    <!--Model box for removal the pending-->
+    <aura:if isTrue="{!v.isOpen}">
+        <!--###### MODAL BOX Start######-->
+        <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+            <div class="slds-modal__container">
+                <!-- ###### MODAL BOX HEADER Start ######-->
+                <header class="slds-modal__header">
+                    <lightning:buttonIcon iconName="utility:close" onclick="{! c.closeModel }" alternativeText="close" variant="bare-inverse" class="slds-modal__close" />
+                </header>
+                <!--###### MODAL BOX BODY Part Start######-->
+                <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1">
+                    <p class="slds-m-vertical_large slds-text-align_center">
+                        Are you sure you want to remove <span class="slds-text-color_blue">{!v.selectedRowsCount}</span> selected email requests from the list?
+                    </p>
+                </div>
+                <!--###### MODAL BOX FOOTER Part Start ######-->
+                <footer class="slds-modal__footer">
+                    <lightning:button variant="neutral" label="Return To Screen" title="Return To Screen" onclick="{! c.closeModel }" />
+                    <lightning:button variant="brand" label="Remove Requests" title="Remove Requests" onclick="{!c.removeReceivedRequests}" />
+                </footer>
+                <!--========================================-->
+            </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open"></div>
+    </aura:if>
+    <!--End of Removal Model box-->
+</aura:component>

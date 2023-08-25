@@ -1,0 +1,61 @@
+<aura:component controller="eBc_SettingController" implements="flexipage:availableForAllPageTypes" access="global">
+    <ltng:require styles="{!$Resource.NoHeader}" />
+
+    <aura:attribute name="Spinner" type="boolean" default="false" />
+    <aura:attribute name="parentComp" type="Aura.Component" required="true" />
+    <aura:attribute name="DefaultTransBy" type="List" />
+    <aura:attribute name="Settings" type="EBizcharge_Setting__c" default="{'sobjectType': 'EBizcharge_Setting__c'}" />
+    <aura:attribute name="DefaultEmailReqSendBy" type="List" />
+    <aura:attribute name="DefaultOrdersBy" type="List" />
+    <aura:attribute name="DefaultAccountsBy" type="List" />
+    <aura:attribute name="DefaultProductsBy" type="List" />
+    <aura:attribute name="DefaultRecurringPaymentsBy" type="List" />
+    <aura:attribute name="ShowLookup" type="boolean" default="true" />
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+
+    <!--====== Default Display Settings ======-->
+    <div class="slds-col slds-size_1-of-1 slds-m-bottom_small">
+        <lightning:card>
+            <div class="slds-p-horizontal_medium">
+
+                <div class="slds-page-header">
+                    <div class="slds-page-header__row">
+                        <div class="slds-page-header__col-title">
+                            Default Display Settings &nbsp;&nbsp;
+                            <lightning:helptext content="Here you can set what the default date range is on each EBizCharge page that contains tables with data. For example, you could set your transaction history to display just today's transactions and your received email payments page to display payments made via Email Pay within the past month."
+                            />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="slds-form slds-m-around_medium">
+                    <label class="slds-form-element__label"><i>Transaction History</i></label>
+                    <div class="slds-form-element slds-form-element_horizontal slds-size_2-of-4">
+                        <lightning:combobox label="All transactions:" value="{!v.Settings.Ebiz_C__Transaction_Filter_By__c	}" options="{! v.DefaultTransBy }" onchange="{! c.TransHandler }" />
+                    </div>
+
+                    <label class="slds-form-element__label"><i>Email Pay</i></label>
+                    <div class="slds-form-element slds-form-element_horizontal slds-size_2-of-4">
+                        <lightning:combobox label="Pending Requests:" value="{!v.Settings.Ebiz_C__Email_Pending_Req_Filter_By__c	}" options="{! v.DefaultEmailReqSendBy }" onchange="{! c.TransHandler }" />
+                    </div>
+                    <label class="slds-form-element__label"><i>Sync - Upload</i></label>
+                    <div class="slds-form-element slds-form-element_horizontal slds-size_2-of-4">
+                        <lightning:combobox label="Orders:" value="{!v.Settings.Ebiz_C__Sync_Orders_Filter_By__c	}" options="{! v.DefaultOrdersBy }" onchange="{! c.TransHandler }" />
+                    </div>
+                    <div class="slds-form-element slds-form-element_horizontal slds-size_2-of-4">
+                        <lightning:combobox label="Accounts/Contacts:" value="{!v.Settings.Ebiz_C__Sync_Accounts_Filter_By__c}" options="{! v.DefaultAccountsBy }" onchange="{! c.TransHandler }" />
+                    </div>
+                    <!-- add new section -->
+                    <!-- <label class="slds-form-element__label"><i>Recurring Payments</i></label>
+                    <div class="slds-form-element slds-form-element_horizontal slds-size_2-of-4">
+                        <lightning:combobox label="Scheduled Recurring Payments:" value="{!v.Settings.Ebiz_C__Sync_Recurring_Payment_Filter_By__c}" options="{! v.DefaultRecurringPaymentsBy }" onchange="{! c.TransHandler }" />
+                    </div> -->
+                </div>
+                <div class="slds-m-vertical_small slds-align_absolute-center">
+                    <lightning:button label="Save" variant="brand" iconName="utility:save" onclick="{! c.saveSettingsDisplay }" />
+                </div>
+            </div>
+        </lightning:card>
+    </div>
+    <!--==================================-->
+</aura:component>

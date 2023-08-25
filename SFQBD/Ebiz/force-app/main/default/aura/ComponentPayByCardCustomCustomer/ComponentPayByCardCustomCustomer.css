@@ -1,0 +1,18 @@
+.THIS .cst-width .slds-form-element__label {
+    width: 110px !important;
+}
+
+.THIS .slds-cst-cbx_right {
+    float: right;
+    margin-right: 15px;
+}
+
+.THIS .slds-dropdown-trigger .slds-dropdown {
+    height: 100px !important;
+    overflow: auto;
+
+}
+
+.THIS .slds-cstcomboExp {
+    width: 34%;
+}

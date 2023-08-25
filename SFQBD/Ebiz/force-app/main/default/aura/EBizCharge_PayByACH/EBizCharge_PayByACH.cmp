@@ -1,0 +1,151 @@
+<aura:component controller="eBc_ProcessPaymentController">
+    <aura:attribute name="Spinner" type="boolean" default="false" />
+    <aura:attribute name="disableSubmitBtn" type="boolean" default="true" required="true" />
+    <aura:attribute type="Boolean" name="disabledPayBy" required="true" />
+    <aura:attribute type="Boolean" name="disableScheduleRR" required="true" />
+    <aura:attribute name="parentComp" type="Aura.Component" required="true" />
+    <aura:attribute name="saveACHList" type="List" default="" required="true" />
+    <aura:attribute name="card4Degit" type="Integer" default="-" required="true" />
+    <aura:attribute name="OS" type="sObject" required="true" />
+    <aura:attribute name="Settings" type="Object" required="true" />
+    <aura:attribute name="ActiveTab" type="string" default="" />
+    <aura:attribute name="disableRRbtnSA" type="Boolean" default="true" />
+    <aura:attribute name="paymentMethodIdSA" type="String" default="" />
+    <aura:attribute name="SendReceiptToSA" type="Boolean" default="false" />
+    <aura:attribute name="addEmailsSA" type="String" default="" />
+    <aura:attribute name="disableRRbtn" type="Boolean" default="true" />
+    <aura:attribute name="accHolderName" type="String" default="" />
+    <aura:attribute name="accNumber" type="String" default="" />
+    <aura:attribute name="accRoutNumber" type="String" default="" />
+    <aura:attribute name="accType" type="String" default="" />
+    <aura:attribute name="saveACH" type="Boolean" default="true" />
+    <aura:attribute name="SendReceiptTo" type="Boolean" default="false" />
+    <aura:attribute name="addEmails" type="String" default="" />
+    <aura:attribute name="selectedLookUpRecord" type="sObject" />
+    <aura:attribute name="placeholderSA" type="string" default="" required="true" />
+    <aura:attribute name="MethodName" type="string" default="" />
+    <aura:attribute name="showModal" type="boolean" default="false" />
+    <aura:attribute name="rrPayBy" type="sObject" default="{}" />
+
+    <aura:method name="clearForm" action="{!c.clearForm}" access="PUBLIC" />
+    <aura:method name="validateAndSubmitForm" action="{!c.validateAndSubmitForm}" access="PUBLIC">
+        <aura:attribute name="OrderSummary" type="sObject" default="{}" />
+    </aura:method>
+    <aura:if isTrue="{!v.Spinner}">
+        <div aura:id="spinnerId" class="slds-spinner_container" style="position: fixed;">
+            <lightning:spinner aura:id="Spinner" alternativeText="Loading" size="medium" variant="brand" />
+        </div>
+    </aura:if>
+    <lightning:tabset variant="scoped" selectedTabId="savedACH">
+        <lightning:tab label="Use Saved Bank Account" id="savedACH" onactive="{!c.handleActiveTab}">
+            <div class="slds-form slds-m-around_medium" role="list">
+                <div class="slds-form__row">
+                    <div class="slds-size_1-of-2">
+                        <div class="slds-form__item" role="listitem">
+                            <div class="slds-form-element slds-form-element_stacked">
+                                <lightning:select aura:id='req-fieldSA' required="true" label="Select Saved Bank Account" value="{!v.paymentMethodIdSA}" disabled="{!v.disabledPayBy}" onchange="{!c.onChangeAChDigit}">
+                                    <option value="">{! v.placeholderSA }</option>
+                                    <aura:iteration items="{!v.saveACHList}" var="S" indexVar="key">
+                                        <option value="{!S.key}"> {!S.value } </option>
+                                    </aura:iteration>
+                                </lightning:select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="slds-size_1-of-2">
+                        <div class="slds-form__item slds-m-left_xx-large" role="listitem">
+                        </div>
+                    </div>
+                </div>
+                <div class="slds-form__row">
+                    <div class="slds-size_1-of-2">
+                        <div class="slds-form__item" role="listitem">
+                            <div class="slds-form-element slds-form-element_stacked">
+                                <lightning:input type="checkbox" aura:id="cmpCheck" label="Send receipt to" value="{!v.SendReceiptToSA}" disabled="{!v.disabledPayBy}" onchange="{!c.checkSendReceiptTo}" />
+                                <aura:renderIf isTrue="{!v.SendReceiptToSA}">
+                                    <lightning:input aura:id="emailForm" variant="label-hidden" type="text" value="{!v.addEmailsSA}" disabled="{!v.disabledPayBy}" onchange="{!c.validateFormSA}" messageWhenPatternMismatch="Please enter a valid email or valid emails separated by a comma"
+                                        pattern="^(([a-zA-Z0-9_\-\.]+)@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.)|(([a-zA-Z0-9\-]+\.)+))([a-zA-Z]{2,4}|[0-9]{1,3})(\]?)(\s*,\s*|\s*$))*$" />
+                                </aura:renderIf>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </lightning:tab>
+        <lightning:tab label="Add New Bank Account" id="addNewACH" onactive="{!c.handleActiveTab}">
+            <div class="slds-form slds-m-around_medium" role="list">
+                <div class="slds-form__row">
+                    <div class="slds-size_1-of-3">
+                        <div class="slds-form__item" role="listitem">
+                            <div class="slds-form-element slds-form-element_stacked">
+                                <lightning:input name="acctHolderName" type="text" label="Account Holder Name" aura:id='req-fields' required="true" value="{!v.accHolderName}" disabled="{!v.disabledPayBy}" onchange="{!c.validateFormACH}" messageWhenPatternMismatch="Input a valid account holder name"
+                                />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="slds-size_1-of-3">
+                        <div class="slds-form__item" role="listitem">
+                            <div class="slds-form-element slds-form-element_stacked">
+                                <lightning:input type="text" label="Routing Number" aura:id='req-fields' required="true" pattern="[0-9]{9,9}" fieldLevelHelp="9 digit bank routing number" value="{!v.accRoutNumber}" disabled="{!v.disabledPayBy}" onchange="{!c.checkRoutLength}" messageWhenPatternMismatch="Input a valid account routing number"
+                                />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="slds-size_1-of-3">
+                        <div class="slds-form__item slds-m-left_large" role="listitem">
+                        </div>
+                    </div>
+                </div>
+                <div class="slds-form__row">
+                    <div class="slds-size_1-of-3">
+                        <div class="slds-form__item" role="listitem">
+                            <div class="slds-form-element slds-form-element_stacked">
+                                <lightning:select value="{!v.accType}" aura:id='req-fields' required="true" label="Account Type" disabled="{!v.disabledPayBy}" onchange="{!c.validateFormACH}">
+                                    <option value="Checking">Checking</option>
+                                    <option value="Savings">Savings</option>
+                                </lightning:select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="slds-size_1-of-3">
+                        <div class="slds-form__item" role="listitem">
+                            <div class="slds-form-element slds-form-element_stacked">
+                                <lightning:input type="text" label="Account Number" aura:id='req-fields' required="true" value="{!v.accNumber}" minlength="9" maxlength="16" disabled="{!v.disabledPayBy}" onchange="{!c.checkAccountLength}" fieldLevelHelp="09 to 16 digit bank account number"
+                                    messageWhenPatternMismatch="Input a valid account number" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="slds-size_1-of-3"></div>
+                </div>
+                <div class="slds-form__row">
+                    <div class="slds-form__item" role="listitem">
+                        <div class="slds-form-element slds-form-element_stacked slds-size_3-of-8">
+                            <lightning:input label="Account Nickname" name="acctHolderName" type="text" value="{!v.MethodName}" onchange="{!c.validateFormACH}" />
+                        </div>
+                    </div>
+                </div>
+                <div class="slds-form__row">
+                    <div class="slds-size_1-of-3">
+                        <div class="slds-form__item" role="listitem">
+                            <div class="slds-form-element slds-form-element_stacked">
+                                <lightning:input type="checkbox" name="saveACH" label="Save Bank Account?" checked="{!v.saveACH}" disabled="{!v.disabledPayBy}" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="slds-size_1-of-3">
+                        <div class="slds-form__item" role="listitem">
+                            <div class="slds-form-element slds-form-element_stacked">
+                                <lightning:input type="checkbox" aura:id="cmpCheck" label="Send receipt to (use comma ' , ' to separate multiple emails)" value="{!v.SendReceiptTo}" disabled="{!v.disabledPayBy}" style="width:390px" onchange="{!c.checkSendReceiptTo}" />
+                                <aura:renderIf isTrue="{!v.SendReceiptTo}">
+                                    <lightning:input aura:id="emailForm" variant="label-hidden" type="text" value="{!v.addEmails}" disabled="{!v.disabledPayBy}" onchange="{!c.validateFormACH}" messageWhenPatternMismatch="Please enter a valid email OR use commas to separate emails" pattern="^(([a-zA-Z0-9_\-\.]+)@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.)|(([a-zA-Z0-9\-]+\.)+))([a-zA-Z]{2,4}|[0-9]{1,3})(\]?)(\s*,\s*|\s*$))*$"
+                                    />
+                                </aura:renderIf>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="slds-size_1-of-3"></div>
+                </div>
+            </div>
+        </lightning:tab>
+    </lightning:tabset>
+</aura:component>

@@ -1,0 +1,63 @@
+<aura:component controller="eBc_ProcessPaymentController" implements="flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId" access="global">
+    <aura:attribute name="Spinner" type="boolean" default="false" />
+    <aura:attribute name="isOpen" type="boolean" default="false" required="true" />
+    <aura:attribute name="Settings" type="Object" required="true" />
+    <aura:attribute name="setRecordId" type="string" />
+    <aura:attribute name="record" type="Object" />
+    <aura:attribute name="SetRecord" type="Object" />
+    <aura:attribute name="recordError" type="String" />
+    <aura:attribute name="disableSaveBtn" type="boolean" default="true" />
+    <aura:attribute name="ordStartDate" type="date" />
+
+    <force:recordData aura:id="recordEditor" layoutType="FULL" recordId="{!v.setRecordId}" targetError="{!v.recordError}" targetRecord="{!v.record}" targetFields="{!v.SetRecord}" mode="EDIT" />
+    <lightning:notificationsLibrary aura:id="notifLib" />
+
+    <!--loading spinner-->
+    <aura:if isTrue="{!v.Spinner}">
+        <div aura:id="spinnerId" class="slds-spinner_container" style="position:fixed; z-index:9999;">
+            <lightning:spinner aura:id="Spinner" alternativeText="Loading" size="medium" variant="brand" />
+        </div>
+    </aura:if>
+    <!-- =========== -->
+    <aura:if isTrue="{!v.isOpen}">
+        <!--###### MODAL BOX Start######-->
+        <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open slds-modal_medium">
+            <div class="slds-modal__container">
+                <lightning:recordEditForm objectApiName="Order" onsuccess="{!c.handleSuccess}">
+                    <!-- ###### MODAL BOX HEADER Start ######-->
+                    <header class="slds-modal__header">
+                        <lightning:buttonIcon iconName="utility:close" onclick="{! c.closeModel }" alternativeText="close" variant="bare-inverse" class="slds-modal__close" />
+                        <h2 id="modal-heading-01" class="slds-text-heading_medium slds-hyphenate">EBizCharge Application - Order</h2>
+                    </header>
+                    <!--###### MODAL BOX BODY Part Start######-->
+                    <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1">
+                        <!-- Display a header -->
+                        <div class="slds-page-header" role="banner">
+                            <p class="slds-text-heading--label">Create New Order</p>
+                        </div>
+                        <div class="slds-grid slds-wrap slds-m-bottom_medium">
+                            <div class="slds-col slds-size_1-of-2 slds-p-horizontal_medium slds-m-top_large">
+                                <lightning:inputField label="Account Name" fieldName="AccountId" aura:id='req-fields-ord' required="true" messageWhenValueMissing="Required Field" />
+                            </div>
+                            <div class="slds-col slds-size_1-of-2 slds-p-horizontal_medium slds-m-top_large">
+                                <lightning:inputField fieldName="EffectiveDate" aura:id='req-fields-ord' required="true" value="{!v.ordStartDate}" messageWhenValueMissing="Required Field" onchange="{!c.validateDate}" />
+                            </div>
+                            <div class="slds-col slds-size_1-of-2 slds-p-horizontal_medium">
+                                <lightning:inputField fieldName="Status" messageWhenValueMissing="Required Field" />
+                            </div>
+                            <div class="slds-col slds-size_1-of-2 slds-p-horizontal_medium ">
+                            </div>
+                        </div>
+                    </div>
+                    <!--###### MODAL BOX FOOTER Part Start ######-->
+                    <footer class="slds-modal__footer">
+                        <lightning:button variant="neutral" label="Cancel" title="Cancel" onclick="{! c.closeModel }" />
+                        <lightning:button label="Save" variant="brand" iconName="utility:save" name="save" disabled="{!v.disableSaveBtn}" aura:id="submit" type="submit" />
+                    </footer>
+                </lightning:recordEditForm>
+            </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open"></div>
+        <!--###### MODAL BOX Part END Here ######-->
+    </aura:if>
+</aura:component>

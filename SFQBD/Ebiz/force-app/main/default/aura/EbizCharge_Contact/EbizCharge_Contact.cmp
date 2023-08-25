@@ -1,0 +1,137 @@
+<aura:component controller="eBc_ContactController" implements="flexipage:availableForAllPageTypes" access="global">
+    <ltng:require styles="{!$Resource.NoHeader}" />
+    <aura:attribute name="Spinner" type="boolean" default="false" />
+    <aura:attribute type="String" name="sortField" />
+    <aura:attribute type="Boolean" name="sortAsc" default="true" />
+    <aura:attribute type="Integer" name="pageNumber" default="1" />
+    <aura:attribute type="Integer" name="maxPage" default="1" />
+    <aura:attribute name="selectedLookUpRecord" type="sObject" default="{}" />
+    <aura:attribute name="isSelectAll" type="string" default="" />
+    <aura:attribute name="totalSyncedAccounts" type="Integer" default="0" />
+    <aura:attribute name="allContacts" type="Object" />
+    <aura:attribute name="contactList" type="List" />
+    <aura:attribute name="accountList" type="List" />
+    <aura:attribute name="disableSyncBtn" type="boolean" default="true" />
+    <aura:attribute name="UseFullAmountForAVS" type="boolean" default="false" />
+    <aura:attribute name="recDetail" type="sObject" />
+    <aura:attribute name="showAccModal" type="boolean" default="false" />
+    <aura:attribute name="showTakePayModal" type="boolean" default="false" />
+    <aura:attribute name="showReqPayModal" type="boolean" default="false" />
+    <aura:attribute name="setRecordId" type="String" />
+    <aura:attribute name="conDetail" type="Contact" />
+    <aura:attribute name="saveCardsList" type="List" />
+    <aura:attribute name="saveACHList" type="List" />
+    <aura:attribute name="TaxTitle" type="string" default="" />
+    <aura:attribute name="ObjectName" type="String" />
+    <aura:attribute name="Settings" type="Object" />
+    <aura:attribute name="emailTemplist" type="list" />
+    <aura:handler name="callParentCmpMethod" action="{!c.handleCompEvent}" event="c:ParentEvent" />
+    <aura:handler name="change" value="{!v.selectedLookUpRecord}" action="{!c.verifyLookUp}" />
+    <aura:handler name="init" value="{! this }" action="{! c.doInit }" />
+    <aura:attribute name="ShowWarn" type="Boolean" default="false" required="true" />
+    <!-- =====Data table attribute == -->
+    <aura:attribute name="ContactColumns" type="List" />
+    <aura:attribute name="accountData" type="Object" />
+    <aura:attribute name="sortBy" type="String" />
+    <aura:attribute name="sortDirection" type="String" />
+    <aura:attribute name="maxRowSelection" type="Integer" default="50" />
+    <aura:attribute name="selectedRowsCount" type="Integer" default="0" />
+    <!-- =========== -->
+    <div class="container">
+        <!--loading spinner-->
+        <aura:if isTrue="{!v.Spinner}">
+            <div aura:id="spinnerId" class="slds-spinner_container" style="position: fixed;">
+                <lightning:spinner aura:id="Spinner" alternativeText="Loading" size="medium" variant="brand" />
+            </div>
+        </aura:if>
+        <!-- =========== -->
+
+        <aura:renderIf isTrue="{!v.ShowWarn}">
+            <c:StartUpMessage />
+        </aura:renderIf>
+
+        <!--Main Page Content Area-->
+        <div class="slds-card slds-card_boundary slds-grid slds-grid--vertical">
+
+            <!--Custom Page Header-->
+            <div class="slds-page-header  slds-page-header_joined slds-page-header_bleed slds-page-header slds-shrink-none">
+                <div class="slds-grid">
+                    <div class="slds-col slds-has-flexi-truncate">
+                        <div class="slds-media slds-no-space slds-grow">
+                            <div class="slds-media__figure">
+                                <span class="slds-icon_container slds-icon-custom-custom15">
+                                    <lightning:icon iconName="action:add_contact" />
+                                </span>
+                            </div>
+
+                            <div class="slds-media__body slds-align-middle">
+                                <nav role="navigation" aria-label="Breadcrumbs">
+                                    <ol class="slds-breadcrumb slds-list--horizontal slds-wrap">
+                                        <li class="slds-breadcrumb__item slds-line-height--reset">
+                                            <span class="slds-var-p-right_x-small">Contacts to sync
+                                                <lightning:badge label="{!v.selectedRowsCount}" iconName="utility:success" />
+                                            </span>
+                                        </li>
+                                    </ol>
+                                </nav>
+                                <div class="slds-grid">
+                                    <h1 class="slds-truncate slds-page-header__title slds-text-color--default">
+                                        <div class="slds-p-right--x-large">
+                                            <span class="slds-page-header__title slds-cell-wrap" title="All Contacts">
+                                                All Contacts
+                                            </span>
+                                        </div>
+                                    </h1>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="slds-col slds-no-flex slds-grid slds-align-top slds-p-bottom--xx-small">
+                        <div class="slds-col slds-no-flex slds-grid slds-align-top slds-shrink slds-m-right_small">
+                            <c:EBizCharge_CustomLookup objectAPIName="contact" IconName="standard:contact" selectedRecord="{!v.selectedLookUpRecord}" label="" placeholder="Search contact name to find more.." />
+                        </div>
+                        <div class="slds-col slds-no-flex slds-grid slds-align-top slds-shrink">
+                            <lightning:button label="New Contact" variant="brand" iconName="utility:new" name="new" onclick="{!c.CreateNewContact}" />
+                            <lightning:button label="Sync Contacts" variant="brand" iconName="utility:sync" name="Sync Accounts" disabled="{!v.disableSyncBtn}" onclick="{!c.SyncAccounts}" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="slds-grid">
+                    <div class="slds-col slds-align-bottom">
+                        <p class="slds-text-body--small">
+                        </p>
+                    </div>
+                </div>
+
+            </div>
+            <!-- =========== -->
+            <!--Custom Page Content-->
+            <div class="slds-grid slds-m-bottom_xx-large">
+                <div style="height :800px; width:100%">
+                    <aura:renderIf isTrue="{!v.allContacts.length &gt; 0}">
+                        <lightning:datatable aura:id="ContactTable" keyField="Id" hideCheckboxColumn="false" maxRowSelection="{! v.maxRowSelection }" columns="{!v.ContactColumns}" data="{!v.allContacts}" sortedBy="{!v.sortBy}" sortedDirection="{!v.sortDirection}" onsort="{!c.handleSort}"
+                            onrowaction="{! c.handleRowAction }" onrowselection="{! c.updateSelectedText }" />
+                        <aura:set attribute="else">
+                            <div class="slds-illustration slds-illustration_small">
+                                <img src="{!$Resource.EmptyState}" />
+                            </div>
+                        </aura:set>
+                    </aura:renderIf>
+                </div>
+            </div>
+
+            <!--============Start Pagination==========-->
+            <aura:renderIf isTrue="{!v.allContacts.length &gt; 0}">
+            </aura:renderIf>
+            <!-- =========== -->
+
+        </div>
+    </div>
+    <c:EBizCharge_ContactRecord isOpen="{!v.showAccModal}" setRecordId="{!v.setRecordId}" Settings="{!v.Settings}" />
+    <c:EBizCharge_ContactPayment isOpen="{!v.showTakePayModal}" Settings="{!v.Settings}" conDetail="{!v.conDetail}" TaxTitle="{!v.TaxTitle}" saveCardsList="{!v.saveCardsList}" saveACHList="{!v.saveACHList}" UseFullAmountForAVS="{!v.UseFullAmountForAVS}" />
+    <c:EBizCharge_ContactRequestPayment isOpen="{!v.showReqPayModal}" recDetail="{!v.recDetail}" emailTemplist="{!v.emailTemplist}" />
+    <!-- =========== -->
+</aura:component>

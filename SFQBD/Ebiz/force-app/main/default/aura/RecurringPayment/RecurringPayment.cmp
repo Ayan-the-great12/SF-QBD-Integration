@@ -1,0 +1,88 @@
+<aura:component controller="eBc_SettingController" implements="flexipage:availableForAllPageTypes" access="global">
+
+    <aura:attribute name="value" type="boolean" default="false" />
+    <aura:attribute name="Spinner" type="boolean" default="false" />
+    <aura:attribute name="disabled" type="boolean" default="true" />
+    <aura:attribute name="parentComp" type="Aura.Component" required="true" access="global" />
+    <aura:attribute name="Settings" type="EBizcharge_Setting__c" default="{'sobjectType': 'EBizcharge_Setting__c'}" />
+    <aura:attribute name="ShowLookup" type="boolean" default="true" />
+
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+
+    <!--====== Auto Pay Settings ======-->
+    <div class="slds-col slds-size_1-of-1 slds-m-bottom_small">
+        <lightning:card>
+            <div class="slds-p-horizontal_medium">
+                <div class="slds-page-header">
+                    <div class="slds-page-header__row">
+                        <div class="slds-page-header__col-title">
+                            Recurring Payment Settings
+                        </div>
+                    </div>
+                </div>
+                <br> </br>
+                <label class="slds-form-element__label"><i>Fixed Amount Auto Payments</i></label>
+                <div class="slds-form-element slds-form-element_horizontal slds-size_1-of-3 slds-cst_padding">
+                    <lightning:input type="radio" name="AutoPay" label="Enable all available frequencies" required="true" checked="{!v.Settings.Ebiz_C__Enable_all_frequencies__c}" onchange="{!c.onRadiounlock}" />
+                </div>
+                <div class="slds-form-element slds-form-element_horizontal slds-size_1-of-3 slds-cst_padding">
+                    <lightning:input type="radio" name="AutoPay" label="Enable specified frequencies" checked="{!v.Settings.Ebiz_C__Disable_all_frequencies__c}" onchange="{!c.onRadio}" />
+
+                </div>
+                <div class="slds-clearfix">
+                    <div class="slds-float_left">
+                        <div class="slds-m-left_medium">
+                            <span>
+                                <lightning:input type="checkbox" checked="{!v.Settings.Ebiz_C__AutoPay_daily__c}" label="Daily" aura:id="daily" disabled="{!v.value}" />
+                            </span>
+                            <span>
+                                <lightning:input type="checkbox" checked="{!v.Settings.Ebiz_C__AutoPay_bi_monthly__c}" label="Bi-monthly" aura:id="biMonth" disabled="{!v.value}" />
+                            </span>
+                        </div>
+                    </div>
+                    <div class="slds-float_left">
+                        <div class="slds-m-left_medium">
+                            <span>
+                                <lightning:input type="checkbox" checked="{!v.Settings.Ebiz_C__AutoPay_weekly__c}" label="Weekly" aura:id="week" disabled="{!v.value}" />
+                            </span>
+                            <span>
+                                <lightning:input type="checkbox" checked="{!v.Settings.Ebiz_C__AutoPay_quarterly__c}" label="Quarterly" aura:id="quarter" disabled="{!v.value}" />
+                            </span>
+                        </div>
+                    </div>
+                    <div class="slds-float_left">
+                        <div class="slds-m-left_medium">
+                            <span>
+                                <lightning:input type="checkbox" checked="{!v.Settings.Ebiz_C__AutoPay_bi_weekly__c}" label="Bi-weekly" aura:id="biweek" disabled="{!v.value}" />
+                            </span>
+                            <span>
+                                <lightning:input type="checkbox" checked="{!v.Settings.Ebiz_C__AutoPay_annually__c}" label="Annually" aura:id="annual" disabled="{!v.value}" />
+                            </span>
+                        </div>
+                    </div>
+                    <div class="slds-float_left">
+                        <div class="slds-m-left_medium">
+                            <span>
+                                <lightning:input type="checkbox" checked="{!v.Settings.Ebiz_C__AutoPay_four_week__c}" label="Four-week" aura:id="fourW" disabled="{!v.value}" />
+                            </span>
+                            <span>
+                                <lightning:input type="checkbox" checked="{!v.Settings.Ebiz_C__AutoPay_bi_annually__c}" label="Bi-annually" aura:id="biAnnu" disabled="{!v.value}" />
+                            </span>
+                        </div>
+                    </div>
+                    <div class="slds-float_left">
+                        <div class="slds-m-left_x-large">
+
+                            <span>
+                                <lightning:input type="checkbox" checked="{!v.Settings.Ebiz_C__AutoPay_monthly__c}" label="Monthly" aura:id="month" disabled="{!v.value}" />
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div class="slds-m-vertical_small slds-align_absolute-center">
+                    <lightning:button label="Save" variant="brand" iconName="utility:save" onclick="{! c.saveSettingsAutopay }" />
+                </div>
+            </div>
+        </lightning:card>
+    </div>
+</aura:component>

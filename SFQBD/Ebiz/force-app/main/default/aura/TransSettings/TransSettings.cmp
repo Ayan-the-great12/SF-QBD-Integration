@@ -1,0 +1,98 @@
+<aura:component controller="eBc_SettingController" implements="flexipage:availableForAllPageTypes" access="global">
+    <ltng:require styles="{!$Resource.NoHeader}" />
+    <aura:attribute name="Spinner" type="boolean" default="false" />
+    <aura:attribute name="parentComp" type="Aura.Component" required="true" />
+    <aura:attribute name="Settings" type="EBizcharge_Setting__c" />
+    <aura:attribute name="DefaultOrdersPay" type="List" />
+    <aura:attribute name="DefaultQuotesPay" type="List" />
+    <aura:attribute name="DefaultOppPay" type="List" />
+    <aura:attribute name="paymentsTab" type="List" />
+    <aura:attribute name="TaxAction" type="List" />
+    <aura:attribute name="TaxManualType" type="List" />
+    <aura:attribute name="ShowLookup" type="boolean" default="true" />
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+
+    <div class="slds-col slds-size_1-of-1 slds-m-bottom_small">
+        <lightning:card>
+            <div class="slds-p-horizontal_medium">
+                <div class="slds-page-header">
+                    <div class="slds-page-header__row">
+                        <div class="slds-page-header__col-title">
+                            Transaction Settings
+                        </div>
+                    </div>
+                </div>
+                <div class="slds-form slds-m-around_medium">
+                    <!-- <div class="slds-form-element slds-form-element_horizontal slds-size_1-of-3 slds-cst_padding">
+                        <lightning:input type="checkbox" 
+                                         label="Save Transactions Locally" 
+                                         checked="{!v.Settings.Save_Transactions_Locally__c}"
+                                         onchange="{!c.transactionJobHandler}"
+                                         aura:id="transactionsBox" 
+                                         />
+                    </div> -->
+                    <label class="slds-form-element__label"><i>Process Payments Tab</i></label>
+                    <div class="slds-form-element slds-form-element_horizontal slds-size_1-of-3 slds-cst_padding">
+                        <lightning:input type="checkbox" label="Allow partial payments" checked="{!v.Settings.Ebiz_C__Allow_Partial_Payment__c}" />
+                    </div>
+                    <!--A.a@ SAL-40 subTask 4-->
+                    <div class="slds-form-element slds-form-element_horizontal slds-size_2-of-4">
+                        <lightning:combobox label="Default Transaction Type:" aura:id="selectItem" value="{!v.Settings.Ebiz_C__Payments_Tab__c}" options="{! v.paymentsTab }" onchange="{! c.TransHandler }" />
+                    </div>
+                    <!--Add Section End-->
+                    <!--ORDeR Payment-->
+                    <label class="slds-form-element__label"><i>Payments on Orders</i></label>
+                    <div class="slds-form-element slds-form-element_horizontal slds-size_1-of-3 slds-cst_padding">
+                        <lightning:combobox value="{!v.Settings.Ebiz_C__Allow_Order_Payment_Type__c}" options="{! v.DefaultOrdersPay }" onchange="{! c.paymentTypeHandler }" />
+                    </div>
+                    <!--Quote Payment-->
+                    <label class="slds-form-element__label"><i>Payments on Quotes</i></label>
+                    <div class="slds-form-element slds-form-element_horizontal slds-size_1-of-3 slds-cst_padding">
+                        <lightning:combobox value="{!v.Settings.Ebiz_C__Allow_Quote_Payment_Type__c}" options="{! v.DefaultQuotesPay }" onchange="{! c.TransHandler }" />
+                    </div>
+
+                    <!--payment on OPP-->
+                    <label class="slds-form-element__label"><i>Payments on Opportunities</i></label>
+                    <!-- <div class="slds-form-element slds-form-element_horizontal slds-size_1-of-3 slds-cst_padding">
+                        <lightning:combobox value="{!v.Settings.Ebiz_C__Allow_Opportunity_Payment_Type__c}" options="{! v.DefaultOppPay }" onchange="{! c.TransHandler }" />
+                    </div> -->
+                    <!--Add Opportunity settings here-->
+                    <div class="slds-m-left_small">
+                        <lightning:input type="checkbox" fieldLevelHelp="If enabled, the EBizCharge Custom Amount field on the opportunity will automatically populate the amount while processing a payment,setting up a recurring payment ,or sending an email pay request." checked="{!v.Settings.Ebiz_C__Use_Custom_Opportunity_Amount__c}" label="Allow Custom field for Amount"/>
+                    </div>
+                    <!--Add Opportunity settings End here-->
+                    <label class="slds-form-element__label"><i>Sales Tax</i></label>
+                    <div class="slds-form__row slds-m-left_xxx-small">
+                        <div class="slds-form-element slds-form-element_horizontal slds-size_2-of-10 slds-cst_padding">
+                            <lightning:input type="checkbox" label="Show sales tax field" checked="{!v.Settings.Ebiz_C__Show_Tax_Field__c}" />
+                        </div>
+                        <div class="slds-form-element slds-form-element_horizontal slds-size_2-of-5 slds-cst_padding">
+                            <lightning:combobox aura:id="selectItem" variant="label-hidden" value="{!v.Settings.Ebiz_C__Tax_Action__c}" options="{!v.TaxAction}" onchange="{!c.TaxActionHandler}" />
+                        </div>
+                    </div>
+                    <aura:renderIf isTrue="{!v.Settings.Ebiz_C__Tax_Action__c == 'Tax Calculate'}">
+                        <div class="slds-form__row slds-m-left_large">
+                            <div class="slds-form-element slds-form-element_horizontal slds-size_1-of-6 slds-cst_padding">
+                                <lightning:input type="radio" name="selectTaxBy" label="Auto calculate sales tax" value="Auto" checked="{!v.Settings.Ebiz_C__Tax_Calculate_By__c == 'Auto'}" onchange="{!c.TaxTypeHandler}" />
+                            </div>
+                            <div class="slds-form-element slds-form-element_horizontal slds-size_1-of-2 slds-cst_padding">
+                                <lightning:input type="text" label="Default sales tax %" value="{!v.Settings.Ebiz_C__Tax_Default_Percent__c}" class="cst-width" />
+                            </div>
+                        </div>
+                        <div class="slds-form__row slds-m-left_large slds-m-bottom_small">
+                            <div class="slds-form-element slds-form-element_horizontal slds-size_1-of-6 slds-cst_padding">
+                                <lightning:input type="radio" name="selectTaxBy" label="Manually enter sales tax" value="Manual" checked="{!v.Settings.Ebiz_C__Tax_Calculate_By__c == 'Manual'}" onchange="{!c.TaxTypeHandler}" />
+                            </div>
+                            <div class="slds-form-element slds-form-element_horizontal slds-size_1-of-3 slds-cst_padding">
+                                <lightning:combobox aura:id="selectItem" variant="label-hidden" value="{!v.Settings.Ebiz_C__Tax_Manual_Type__c}" options="{!v.TaxManualType}" onchange="{!c.TaxManualHandler}" />
+                            </div>
+                        </div>
+                    </aura:renderIf>
+                </div>
+                <div class="slds-m-vertical_small slds-align_absolute-center">
+                    <lightning:button label="Save" variant="brand" iconName="utility:save" onclick="{! c.saveSettingsTransactions }" />
+                </div>
+            </div>
+        </lightning:card>
+    </div>
+</aura:component>

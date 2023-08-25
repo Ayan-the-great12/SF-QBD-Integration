@@ -1,0 +1,51 @@
+<aura:component>
+    <aura:attribute name="isOpen" type="boolean" default="false" required="true" />
+    <aura:attribute name="actionStr" type="String" default="false" required="true" />
+    <aura:attribute name="Spinner" type="boolean" default="false" />
+    <aura:attribute name="srAccounts" type="string" default="all" />
+    <aura:attribute name="changeValue" type="string" />
+    <aura:registerEvent name="filterdAccountsEvent" type="c:FilterAccounts" />
+
+    <div class="container">
+        <aura:if isTrue="{!v.Spinner}">
+            <div aura:id="spinnerId" class="slds-spinner_container" style="position: fixed;">
+                <lightning:spinner aura:id="Spinner" alternativeText="Loading" size="medium" variant="brand" />
+            </div>
+        </aura:if>
+        <aura:if isTrue="{!v.isOpen}">
+
+            <!--loading spinner-->
+
+            <!-- =========== -->
+
+            <!--###### MODAL BOX Start######-->
+            <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+                <div class="slds-modal__container">
+                    <!-- ###### MODAL BOX HEADER Start ######-->
+                    <header class="slds-modal__header">
+                        <lightning:buttonIcon iconName="utility:close" onclick="{! c.closeModel }" alternativeText="close" variant="bare-inverse" class="slds-modal__close" />
+                        <h2 id="modal-heading-01" class="slds-text-heading_medium slds-hyphenate">
+                            Please Confirm
+                        </h2>
+                    </header>
+                    <!--=====================================-->
+                    <!--###### MODAL BOX BODY Part Start######-->
+                    <div class="slds-modal__content slds-p-around_medium " id="modal-content-id-1">
+                        <p class="slds-m-vertical_large slds-text-align_center">
+                            Displaying only accounts with {!v.srAccounts} may take several minutes to load. Are you sure you'd like to apply this filter?
+                        </p>
+                    </div>
+                    <!--========================================-->
+                    <!--###### MODAL BOX FOOTER Part Start ######-->
+                    <footer class="slds-modal__footer">
+                        <lightning:button variant="neutral" label="Return to Screen" title="Return to Screen" onclick="{! c.closeModel }" />
+                        <lightning:button variant="brand" label="Yes, continue" title="Yes, continue" onclick="{! c.searchNow }" />->
+                    </footer>
+                    <!--========================================-->
+                </div>
+            </section>
+            <div class="slds-backdrop slds-backdrop_open"></div>
+            <!--###### MODAL BOX Part END Here ######-->
+        </aura:if>
+    </div>
+</aura:component>

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Allow_Order_Payment_Type__c</fullName>
+    <deprecated>false</deprecated>
+    <externalId>false</externalId>
+    <label>Allow Order Payment Type</label>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Picklist</type>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>Pre-auths and Deposit</fullName>
+                <default>true</default>
+                <label>Pre-auths and Deposit</label>
+            </value>
+            <value>
+                <fullName>Pre-auths</fullName>
+                <default>false</default>
+                <label>Pre-auths</label>
+            </value>
+            <value>
+                <fullName>Deposit</fullName>
+                <default>false</default>
+                <label>Deposit</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>

@@ -1,0 +1,202 @@
+<aura:component controller="eBc_EmailPayController" access="public">
+    <aura:attribute name="parentComp" type="Aura.Component" required="true" />
+    <aura:attribute name="NoOfPayRequests" type="Integer" required="true" />
+    <aura:attribute name="disableEmailForm" type="boolean" required="true" />
+    <aura:attribute name="ES" type="sObject" required="true" />
+    <aura:attribute name="Settings" type="Object" required="true" />
+    <aura:attribute type="String" name="sortField" />
+    <aura:attribute name="sortAsc" type="boolean" default="true" />
+    <aura:attribute name="Spinner" type="boolean" default="false" />
+    <aura:attribute name="accountDetail" type="Account" />
+    <aura:attribute name="selectedLookUpAccRecord" type="sObject" default="{}" access="public" />
+    <aura:attribute name="selectedLookUpOrdRecord" type="sObject" default="{}" access="public" />
+    <aura:attribute name="isSelectAll" type="boolean" default="false" />
+    <aura:attribute name="Orders" type="list" default="[]" />
+    <aura:method name="updateTax" action="{!c.SelectSingleOrder}" />
+    <aura:handler name="callParentCmpMethod" action="{!c.handleCompEvent}" event="c:ParentEvent" />
+
+    <div class="container">
+        <!--loading spinner-->
+        <aura:if isTrue="{!v.Spinner}">
+            <div aura:id="spinnerId" class="slds-spinner_container" style="position: fixed;">
+                <lightning:spinner aura:id="Spinner" alternativeText="Loading" size="medium" variant="brand" />
+            </div>
+        </aura:if>
+        <!-- =========== -->
+
+        <div class="slds-form" role="list">
+
+            <!--main filters-->
+            <div class="slds-form__row">
+                <div class="slds-form__item slds-size_1-of-4" role="listitem">
+                    <div class="slds-form-element slds-form-element_stacked">
+                        <c:EBizCharge_CustomLookupRecurring objectAPIName="account" IconName="standard:account" selectedRecord="{!v.selectedLookUpAccRecord}" label="Select an Account / Contact" />
+                    </div>
+                </div>
+
+                <div class="slds-form__item  slds-size_1-of-6 slds-align-middle slds-text-align_center" style="min-width: 100px; width:5%;" role="listitem">
+                    <div class="slds-form-element slds-form-element_stacked">
+                        or
+                    </div>
+                </div>
+
+                <div class="slds-form__item slds-size_1-of-4" role="listitem">
+                    <div class="slds-form-element slds-form-element_stacked">
+                        <c:EBizCharge_CustomLookup objectAPIName="Order" IconName="standard:orders" selectedRecord="{!v.selectedLookUpOrdRecord}" label="Search by Order" placeholder='Select an order' />
+                    </div>
+                    <div class="slds-align-middle slds-m-left_x-small">
+                        <lightning:button variant="brand" label="Search" title="Search" onclick="{! c.getOrders }" />
+                    </div>
+                </div>
+            </div>
+            <!-- =========== -->
+            <!--Table Grid-->
+            <div class="slds-m-vertical_large" style="max-height:300px">
+                <div class="slds-size_3-of-4" role="listitem">
+                    <div class="slds-form-element slds-form-element_stacked" style="padding-top: 4px;">
+                        <h1>Orders selected
+                            <lightning:badge label="{!v.NoOfPayRequests}" iconName="utility:success" />
+                        </h1>
+                    </div>
+                </div>
+                <div style="min-height:150px;max-height:300px; overflow-y: auto; overflow-x: hidden;">
+                    <table aria-multiselectable="true" class="slds-table slds-table_cell-buffer slds-table_striped slds-table_bordered slds-border_left slds-border_right" role="grid">
+                        <thead>
+                            <tr class="slds-text-title--caps">
+                                <th class="slds-text-align_center">
+                                    <label class="slds-checkbox">
+                                        <ui:inputCheckbox value="{!v.isSelectAll}" change="{!c.SelectAllOrders}" aura:id="selectAll" />
+                                        <span class="slds-checkbox--faux" />
+                                        <span class="slds-form-element__label"></span>
+                                    </label>
+                                </th>
+                                <th scope="col">
+                                    <div class="slds-truncate" title="Order Number" onclick="{!c.sortByOrderNumber}">
+                                        Order #
+                                        <span>
+                                            <aura:if isTrue="{!v.sortAsc}">
+                                                <lightning:icon iconName="utility:arrowup" size="xx-small" alternativeText="&#8593;" />
+                                                <aura:set attribute="else">
+                                                    <lightning:icon iconName="utility:arrowdown" size="xx-small" alternativeText="&#8595;" />
+                                                </aura:set>
+                                            </aura:if>
+                                        </span>
+                                    </div>
+                                </th>
+                                <th scope="col">
+                                    <div class="slds-truncate" title="Order Date" onclick="{!c.sortByOrderDate}">
+                                        Order Date
+                                        <span>
+                                            <aura:if isTrue="{!v.sortAsc}">
+                                                <lightning:icon iconName="utility:arrowup" size="xx-small" alternativeText="&#8593;" />
+                                                <aura:set attribute="else">
+                                                    <lightning:icon iconName="utility:arrowdown" size="xx-small" alternativeText="&#8595;" />
+                                                </aura:set>
+                                            </aura:if>
+                                        </span>
+                                    </div>
+                                </th>
+
+                                <th scope="col">
+                                    <div class="slds-truncate" title="Account Name" onclick="{!c.sortByAccountName}">
+                                        Account Name
+                                        <span>
+                                            <aura:if isTrue="{!v.sortAsc}">
+                                                <lightning:icon iconName="utility:arrowup" size="xx-small" alternativeText="&#8593;" />
+                                                <aura:set attribute="else">
+                                                    <lightning:icon iconName="utility:arrowdown" size="xx-small" alternativeText="&#8595;" />
+                                                </aura:set>
+                                            </aura:if>
+                                        </span>
+                                    </div>
+                                </th>
+
+                                <th scope="col">
+                                    <div class="slds-truncate" title="Account Email" onclick="{!c.sortByEmail}">
+                                        Email
+                                        <span>
+                                            <aura:if isTrue="{!v.sortAsc}">
+                                                <lightning:icon iconName="utility:arrowup" size="xx-small" alternativeText="&#8593;" />
+                                                <aura:set attribute="else">
+                                                    <lightning:icon iconName="utility:arrowdown" size="xx-small" alternativeText="&#8595;" />
+                                                </aura:set>
+                                            </aura:if>
+                                        </span>
+                                    </div>
+                                </th>
+
+                                <th scope="col">
+                                    <div class="slds-truncate" title="Order Amount" onclick="{!c.sortByOrderAmount}">
+                                        Order Amount
+                                        <span>
+                                            <aura:if isTrue="{!v.sortAsc}">
+                                                <lightning:icon iconName="utility:arrowup" size="xx-small" alternativeText="&#8593;" />
+                                                <aura:set attribute="else">
+                                                    <lightning:icon iconName="utility:arrowdown" size="xx-small" alternativeText="&#8595;" />
+                                                </aura:set>
+                                            </aura:if>
+                                        </span>
+                                    </div>
+                                </th>
+
+                                <th scope="col">
+                                    <div class="slds-truncate" title="Amount Due">
+                                        Amount Due
+                                    </div>
+                                </th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            <aura:if isTrue="{!v.Orders.length &gt; 0}">
+                                <aura:iteration items="{!v.Orders}" var="o">
+                                    <tr class="slds-hint-parent">
+                                        <td class="slds-text-align_center" role="gridcell">
+                                            <label class="slds-checkbox">
+                                                <ui:inputCheckbox aura:id="checkOrder" value="{!o.isSelected}" text="{!o.OrderNumber}" change="{!c.SelectSingleOrder}" />
+                                                <span class="slds-checkbox--faux" />
+                                                <span class="slds-form-element__label"></span>
+                                            </label>
+                                        </td>
+                                        <td data-label="Order Number">
+                                            <div class="slds-truncate">
+                                                <a href="{!'/one/one.app?#/sObject/'+ o.Id + '/view'}" target="_blank">{!o.OrderNumber}</a>
+                                            </div>
+                                        </td>
+                                        <td data-label="Order Date">
+                                            <lightning:formattedDateTime value="{!o.CreatedDate}" year="numeric" month="short" day="numeric" timeZone="UTC" />
+
+                                        </td>
+                                        <td data-label="Account Name">
+                                            <div class="slds-truncate">
+                                                <a href="{!'/one/one.app?#/sObject/'+ o.accId + '/view'}" target="_blank">{!o.accName}</a>
+                                            </div>
+                                        </td>
+                                        <td data-label="Account Email">
+                                            <div class="slds-truncate">{!o.accEmail}</div>
+                                        </td>
+                                        <td data-label="Order Amount">
+                                            <div class="slds-truncate">${!o.TotalAmount}</div>
+                                        </td>
+                                        <!-- <td data-label="Order Tax">
+                                            <div class="slds-truncate">${!o.OrderTax}</div>
+                                        </td> -->
+                                        <c:inlineEditCol singleRec="{!o}" editCol="Amount" CompName="ep" parentComp="{!this}" />
+                                    </tr>
+                                </aura:iteration>
+                                <aura:set attribute="else">
+                                    <tr>
+                                        <td colspan='8' style="text-align: center;">
+                                            <i>No Account Selected</i>
+                                        </td>
+                                    </tr>
+                                </aura:set>
+                            </aura:if>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <!-- =========== -->
+        </div>
+    </div>
+</aura:component>

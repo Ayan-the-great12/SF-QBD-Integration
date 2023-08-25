@@ -1,0 +1,10 @@
+.THIS .slds-align-middle{
+    padding-top: 15px !important; 
+}
+.THIS .slds-cst-cbx_right{    
+    float: right;
+    margin-right: 15px;
+}
+.THIS hr {
+    margin: var(--lwc-spacingmedium,0.7rem) 0 !important;    
+}

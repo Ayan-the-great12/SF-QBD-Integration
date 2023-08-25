@@ -1,0 +1,77 @@
+<aura:component controller="eBc_SettingController" implements="force:appHostable,flexipage:availableForAllPageTypes" access="global">
+    <ltng:require styles="{!$Resource.NoHeader}" />
+    <aura:attribute name="Spinner" type="boolean" default="false" />
+    <aura:attribute name="Settings" type="EBizcharge_Setting__c" default="{'sobjectType': 'EBizcharge_Setting__c'}" />
+    <aura:attribute name="ShowLookup" type="boolean" default="true" />
+    <aura:attribute name="disableUplTab" type="boolean" default="false" />
+    <aura:attribute name="disableDnldTab" type="boolean" default="false" />
+    <aura:attribute name="ActiveTab" type="string" default="Upload" />
+
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+
+    <!--====================-->
+
+    <!--loading spinner-->
+    <aura:if isTrue="{!v.Spinner}">
+        <div aura:id="spinnerId" class="slds-spinner_container" style="position: fixed;">
+            <lightning:spinner aura:id="Spinner" alternativeText="Loading" size="medium" variant="brand" />
+        </div>
+    </aura:if>
+    <!-- =========== -->
+
+    <!-- <div class="container">    -->
+    <div class="container slds-page-header slds-page-header_record-home">
+        <!-- Custom Page Header -->
+        <div class="slds-page-header slds-m-bottom_xx-small">
+            <div class="slds-media">
+                <div class="slds-media__figure">
+                    <span class="slds-icon_container slds-icon-custom-custom67" title="General settings for application">
+                        <lightning:icon iconName="custom:custom3" alternativeText="Accounts" />
+                    </span>
+                </div>
+                <div class="slds-media__body">
+                    <h1 class="slds-page-header__title slds-truncate slds-align-middle" title="General EBizCharge Settings">EBizCharge Settings
+                    </h1>
+                    <p class="slds-text-body_small slds-line-height_reset">Settings</p>
+                </div>
+            </div>
+        </div>
+        <!--===================-->
+
+        <!--Started Tabs From Here-->
+        <div class="slds-page-header__col-details">
+            <div class="slds-page-header__detail-row">
+                <lightning:tabset variant="scoped" selectedTabId="defaultsettings">
+                    <lightning:tab label="Default Display Settings" id="defaultsettings">
+                        <c:DefaultDisplaySettings parentComp="{!this}" />
+                    </lightning:tab>
+
+                    <lightning:tab label="Transaction Settings" id="transactions">
+                        <c:TransSettings parentComp="{!this}" />
+                    </lightning:tab>
+
+                    <lightning:tab label="Sync Settings" id="sync">
+                        <c:SyncSettings parentComp="{!this}" />
+                    </lightning:tab>
+
+                    <lightning:tab label="Recurring Payment Settings" id="recurring">
+                        <c:RecurringPayment parentComp="{!this}" />
+                    </lightning:tab>
+
+                    <!-- <lightning:tab label="Connectors" id="epicore">
+                        <c:EpicoreSettings parentComp="{!this}" />
+                    </lightning:tab> -->
+
+                    <!-- <lightning:tab label="Custom Logs" id="Logs">
+                        <c:CustomLogs parentComp="{!this}" />
+                    </lightning:tab> -->
+
+                    <lightning:tab label="Setup" id="Setup">
+                        <c:SettingsSetup parentComp="{!this}" />
+                    </lightning:tab>
+                </lightning:tabset>
+            </div>
+        </div>
+        <!--Latest Code-->
+    </div>
+</aura:component>

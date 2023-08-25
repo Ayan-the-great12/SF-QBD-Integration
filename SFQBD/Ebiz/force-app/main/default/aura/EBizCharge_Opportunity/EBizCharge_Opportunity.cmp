@@ -1,0 +1,181 @@
+<aura:component controller="eBc_OpportunityController"
+                implements="flexipage:availableForAllPageTypes" access="global" >
+    <ltng:require styles="{!$Resource.NoHeader}"/>
+    
+    <!-- attributes -->
+    <aura:attribute name="Spinner" type="boolean" default="false"/>
+    <aura:attribute type="String" name="sortField" />
+    <aura:attribute type="Boolean" name="sortAsc" default="true" />
+    <aura:attribute name="isSelectAll" type="boolean" default="false"/>
+    <aura:attribute name="opportunityList" type="List" />
+    
+    <aura:attribute name="showOppModal" type="boolean" default="false" />
+    
+    <aura:handler name="init" value="{! this }" action="{! c.doInit }"/>
+    <!-- =========== -->
+    
+    
+    
+    <!--loading spinner-->
+    <aura:if isTrue="{!v.Spinner}">
+        <div aura:id="spinnerId" class="slds-spinner_container" style="position: fixed;">
+            <lightning:spinner aura:id="Spinner" alternativeText="Loading" size="medium" variant="brand"/>
+        </div>
+    </aura:if> 
+    <!-- =========== -->    
+    
+    
+    
+    <!--Main Page Content Area-->
+    
+    <div class="container slds-card slds-card_boundary slds-grid slds-grid--vertical">    
+        <!--Custom Page Header-->
+        
+        <div class="slds-page-header  slds-page-header_joined slds-page-header_bleed slds-page-header slds-shrink-none">
+            <div class="slds-grid">
+                <div class="slds-col slds-has-flexi-truncate">
+                    <div class="slds-media slds-no-space slds-grow" >
+                        <div class="slds-media__figure">
+                            <span class="slds-icon_container slds-icon-standard-opportunity">
+                                <lightning:icon iconName="standard:opportunity" alternativeText="" />
+                            </span>
+                        </div>
+                        
+                        <div class="slds-media__body slds-align-middle">
+                            <nav role="navigation" aria-label="Breadcrumbs">
+                                <ol class="slds-breadcrumb slds-list--horizontal slds-wrap">
+                                    <li class="slds-breadcrumb__item slds-line-height--reset">
+                                        <span class="slds-var-p-right_x-small">Opportunity</span>
+                                    </li>
+                                </ol>
+                            </nav>
+                            <div class="slds-grid">
+                                <h1 class="slds-truncate slds-page-header__title slds-text-color--default" >
+                                    <div class="slds-p-right--x-large">
+                                        <span class="slds-page-header__title slds-cell-wrap" title="All Opportunities">
+                                            All Opportunities
+                                        </span>
+                                    </div>
+                                </h1>
+                                
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="slds-col slds-no-flex slds-grid slds-align-top slds-p-bottom--xx-small">
+                    <div class="slds-col slds-no-flex slds-grid slds-align-top slds-shrink">	
+                        <lightning:button label="New Opportunity"
+                                          variant="brand"
+                                          iconName="utility:new"
+                                          name="new"
+                                          onclick="{!c.NewOppHandler}"
+                                          />
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- =========== -->
+        
+        <div class="slds-grid slds-m-bottom_xx-large">
+            <table class="slds-table slds-table_cell-buffer slds-table_bordered">
+                <thead>
+                    <tr class="slds-line-height_reset">
+                        <!--
+                        <th class="slds-text-align_right" scope="col" style="width:5rem">
+                            <span id="column-group-header" class="slds-assistive-text"></span>
+                            <div class="slds-th__action slds-th__action_form">
+                                <label class="slds-checkbox">
+                                    <ui:inputCheckbox aura:id="selectAll"
+                                                      value=""
+                                                      change=""/>
+                                    <span class="slds-checkbox_faux"></span>
+                                    <span class="slds-form-element__label"></span>
+                                </label>
+                                
+                            </div>
+                        </th>
+-->
+                        <th class="slds-is-resizable " scope="col" >
+                            <div class="slds-truncate" title="Opportunity Name" onclick="{!c.sortByName}">
+                                Opportunity Name
+                            </div>
+                        </th>
+                        <th class="slds-is-resizable " scope="col" >
+                            <div class="slds-truncate" title="Account Name" onclick="{!c.sortByAccName}">
+                                Account Name
+                            </div>
+                        </th>
+                        <th class="slds-is-resizable " scope="col" >
+                            <div class="slds-truncate" title="Opportunity Amount" onclick="{!c.sortByAmount}">
+                                Amount
+                            </div>
+                        </th>
+                        <th class="slds-is-resizable " scope="col" >
+                            <div class="slds-truncate" title="Opportunity Close Date" onclick="{!c.sortByCloseDate}">
+                                Close Date
+                            </div>
+                        </th>
+                        <th class="slds-is-resizable " scope="col" >
+                            <div class="slds-truncate" title="Opportunity Stage" onclick="{!c.sortByStage}">
+                                Stage
+                            </div>
+                        </th>
+                        <th class="slds-is-resizable " scope="col" >
+                            <div class="slds-truncate" title="Opportunity Type" onclick="{!c.sortByType}">
+                                Type
+                            </div>
+                        </th>
+                        
+                    </tr>
+                </thead>
+                
+                <tbody>
+                    <aura:iteration items="{!v.opportunityList}" var="opp">
+                        <tr class="slds-hint-parent">
+                            <!--
+                            <td class="slds-text-align_right" role="gridcell">
+                                <label class="slds-checkbox">
+                                    <ui:inputCheckbox aura:id="checkAccount" value="{!opp.isSelected}" text="{!opp.OppId}"/>
+                                    <span class="slds-checkbox=faux" />
+                                    <span class="slds-form-element__label"></span>
+                                </label>
+                            </td>
+-->
+                            
+                            <td data-label="Account Name">
+                                <div class="slds-truncate" >
+                                    <a href="{!'/one/one.app?#/sObject/'+ opp.OppId + '/view'}" target="_blank">{!opp.OppName}</a>
+                                </div>
+                            </td>
+                            <td data-label="Account Name">
+                                <div class="slds-truncate">{!opp.OppAccountName}</div>
+                            </td>
+                            <td data-label="Opportunity Amount">
+                                <div class="slds-truncate">${!opp.OppAmount}</div>
+                            </td>
+                            <td data-label="Opportunity Close Date">
+                                <div class="slds-truncate">
+                                    <lightning:formattedDateTime value="{!opp.OppCloseDate}" year="numeric" month="numeric" day="numeric" />
+                                </div>
+                            </td>
+                            <td data-label="Opportunity Stage">
+                                <div class="slds-truncate">{!opp.OppStage}</div>
+                            </td>
+                            <td data-label="Opportunity Type">
+                                <div class="slds-truncate">{!opp.OppType}</div>
+                            </td>
+                        </tr>
+                    </aura:iteration>
+                    
+                </tbody>
+            </table>
+            
+        </div>
+    </div>
+    <!-- ==================== --> 
+    
+    <c:EBizCharge_OpportunityRecord isOpen="{!v.showOppModal}" />
+    
+</aura:component>

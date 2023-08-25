@@ -1,0 +1,51 @@
+.THIS .slds-align-middle {
+    padding-top: 20px !important;
+}
+
+.THIS .uiInput--input.input {
+    min-height: calc(1.125rem + 2px) !important;
+}
+
+
+
+.THIS .visa {
+    background-image: url("/resource/Ebiz_C__visaImage");
+    background-repeat: no-repeat, repeat;
+    
+}
+
+.THIS .last4 {
+    padding-left: 100%;
+}
+
+.THIS .master {
+    background-image: url("/resource/Ebiz_C__MasterCardImage");
+    background-repeat: no-repeat, repeat;
+    
+}
+
+.THIS .american {
+    background-image: url("/resource/Ebiz_C__AmericanExpressImage");
+    background-repeat: no-repeat, repeat;
+    
+}
+
+.THIS .discover {
+    background-image: url("/resource/Ebiz_C__DiscoverImage");
+    background-repeat: no-repeat, repeat;
+    
+}
+
+.THIS .slds-text-color_blue {
+    color: #0C8EFF !important;
+    font-weight: bold;
+}
+
+.THIS .my-vertical-padding {
+    padding: 2px 0;
+}
+.THIS .eCheck { 
+    background-image: url("/resource/Ebiz_C__CheckHomeImage");
+     background-repeat: no-repeat, repeat;
+     
+ }

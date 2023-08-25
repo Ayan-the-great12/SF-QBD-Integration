@@ -1,0 +1,30 @@
+<apex:page controller="TransactionPDFController" renderAs="pdf" showHeader="false">
+    
+    
+    <h2>Transaction Detail</h2>
+    
+    <table style="width:100%">
+        <tr>
+            <th>Referenc Number:</th>
+            <td><apex:outputText value="{!recMap['RefNumber']}"/></td>
+            <th>Order #</th>
+            <td><apex:outputText value="{!recMap['OrderNumber']}"/></td>
+        </tr>
+        <tr style="height:20px;"></tr>
+        <tr>
+            <th>Auth Amount:</th>
+            <td><apex:outputText value="${!recMap['AuthAmount']}"/></td>
+            <th>Result:</th>
+            <td><apex:outputText value="{!recMap['Result']}"/></td>
+        </tr>
+        <tr style="height:20px;"></tr>
+        <tr>
+            <th>Account Name</th>
+            <td><apex:outputText value="{!recMap['AccountName']}"/></td>
+            <th>Type</th>
+            <td><apex:outputText value="{!recMap['TransType']}"/></td>
+        </tr>
+    </table>
+    
+    
+</apex:page>

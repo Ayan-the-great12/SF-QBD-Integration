@@ -1,0 +1,391 @@
+<aura:component controller="EBC_ComponentController" implements="flexipage:availableForRecordHome" access="global">
+
+    <aura:attribute name="ObjectName" type="String" default="" required="true" />
+    <aura:attribute name="recordId" type="String" default="" required="true" />
+    <aura:attribute name="Settings" type="Object" required="true" />
+    <aura:attribute name="orderDetail" type="Object" />
+    <aura:attribute name="Spinner" type="boolean" default="false" />
+    <aura:attribute name="isOpen" type="boolean" default="false" />
+
+    <aura:attribute name="accountId" type="String" />
+    <aura:attribute name="accountName" type="String" />
+    <aura:attribute name="accDetail" type="Account" />
+    <aura:attribute name="ConDetail" type="Contact" />
+    <aura:attribute name="contactDetail" type="Contact" />
+    <aura:attribute name="ContactId" type="String" />
+    <aura:attribute name="ContactName" type="String" />
+
+    <aura:attribute name="PaymentTotal" type="double" default="0.0" />
+    <aura:attribute name="Amount" type="double" default="0.0" />
+    <aura:attribute name="Tax" type="double" default="0.0" />
+    <aura:attribute name="TaxTitle" type="String" default="" />
+    <aura:attribute name="ParentActiveTab" type="string" default="" />
+    <aura:attribute name="disableSubmitBtn" type="boolean" default="true" />
+    <aura:attribute name="showpaymentform" type="boolean" default="false" />
+    <aura:attribute name="isOpenScheduleDatesModal" type="boolean" default="false" />
+
+    <aura:attribute name="payByCardInfo" type="sObject" default="{}" />
+    <aura:attribute name="payByACHInfo" type="sObject" default="{}" />
+    <aura:attribute name="saveCardsList" type="List" />
+    <aura:attribute name="saveACHList" type="List" />
+    <aura:attribute name="ButtonVisibility" type="boolean" default="false" />
+    <aura:attribute name="showRRSummary" type="boolean" default="false" />
+    <aura:attribute name="RecurIndefinitely" type="boolean" default="false" />
+    <aura:attribute name="rrOptions" type="List" />
+    <aura:attribute name="rrPayName" type="string" default="" />
+    <aura:attribute name="rrFrequency" type="string" default="" />
+    <aura:attribute name="rrStartDate" type="date" default="" />
+    <aura:attribute name="rrEndDate" type="date" default="" />
+    <aura:attribute name="rrNotes" type="string" default="" />
+    <aura:attribute name="rrS" type="sObject" default="{}" />
+
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+    <aura:attribute name="today" type="date" />
+    <aura:attribute name="mindate" type="date" />
+    <aura:attribute name="maxdate" type="date" />
+
+    <!--loading spinner start -->
+    <aura:if isTrue="{!v.Spinner}">
+        <div aura:id="spinnerId" class="slds-spinner_container" style="position: fixed; z-index: 9999;">
+            <lightning:spinner aura:id="Spinner" alternativeText="Loading" size="medium" variant="brand" />
+        </div>
+    </aura:if>
+    <!-- Loading spinner end-->
+
+    <aura:if isTrue="{!v.isOpen}">
+        <!--====== MODAL BOX Start======-->
+        <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true"
+            aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open slds-modal_medium">
+            <div class="slds-modal__container" style="width: 75%;">
+                <!-- ====== MODAL BOX HEADER Start ======-->
+                <header class="slds-modal__header">
+                    <lightning:buttonIcon iconName="utility:close" onclick="{! c.closeModel }" alternativeText="close"
+                        variant="bare-inverse" class="slds-modal__close" />
+                    <h2 id="modal-heading-01" class="slds-text-heading_medium slds-hyphenate">
+                        Schedule New Recurring Payment
+                    </h2>
+                </header>
+
+                <!--====== MODAL BOX BODY Part Start ======-->
+                <div class="slds-modal__content slds-p-around_large" id="modal-content-id-1">
+                    <!--====== Model Content Header Part Start ======-->
+                    <div class="slds-text-heading_small slds-text-title_bold slds-m-bottom_large">
+                        <lightning:icon iconName="utility:user" size="x-small" /> &nbsp; {!v.ConDetail.Name}
+                        <span class="slds-text-heading--medium slds-float_right">
+                            Total:
+                            <lightning:formattedNumber value="{!''+v.PaymentTotal}" style="currency"
+                                currencyCode="{!v.Settings.Ebiz_C__Currency__c}" maximumFractionDigits="2" />
+                        </span>
+                    </div>
+
+                    <div class="slds-form__row">
+                        <div class="slds-form__item" role="listitem">
+                            <div class="slds-form-element slds-form-element_stacked">
+                                <lightning:input type="number" required="true" label="Amount"
+                                    placeholder="$ Input payment amount..." aura:id="req-fieldsrr" value="{!v.Amount}"
+                                    formatter="currency" step="0.01"
+                                    messageWhenBadInput="Input numeric values for amount"
+                                    onfocusout="{!c.onChangeAmount}" messageWhenValueMissing="Required Field"
+                                    maxlength="16" />
+                            </div>
+                        </div>
+                        <div class="slds-form__item" role="listitem">
+                            <div class="slds-size_1-of-5">
+                                <aura:renderIf isTrue="{!v.Settings.Ebiz_C__Show_Tax_Field__c}">
+                                    <lightning:input type="number" name="tax" label="{!v.TaxTitle}"
+                                        disabled="{!v.Settings.Ebiz_C__Tax_Calculate_By__c == 'Manual' ? false : true}"
+                                        formatter="{!v.Settings.Ebiz_C__Tax_Manual_Type__c == 'Use Percent' ? 'percent-fixed' : 'currency'}"
+                                        step="0.01" value="{!v.Tax}" onchange="{!c.onChangeAmount}" />
+                                </aura:renderIf>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="slds-page-header slds-m-vertical_medium">
+                        <div class="slds-page-header__row">
+                            <div class="slds-page-header__col-title">
+                                Schedule Information
+                            </div>
+                        </div>
+                    </div>
+
+                    <!--====== Recurring Form Block ======-->
+                    <div class="slds-grid slds-gutters slds-p-around_medium" role="list">
+                        <div class="slds-col slds-size_1-of-2">
+                            <div class="slds-form__row">
+                                <div class="slds-form__item" role="listitem">
+                                    <div class="slds-form-element slds-form-element_stacked">
+                                        <lightning:input type="text" aura:id="req-fieldsrr" required="true"
+                                            label="Recurring Payment Name" placeholder="Input payment name"
+                                            value="{!v.rrPayName}" onchange="{!c.validateRecurringForm}"
+                                            messageWhenValueMissing="Required Field" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="slds-form__row">
+                                <div class="slds-form__item" role="listitem">
+                                    <div class="slds-form-element slds-form-element_stacked">
+                                        <lightning:combobox aura:id="req-fieldsrr" required="true"
+                                            label="Payment Frequency" value="{!v.rrFrequency}"
+                                            placeholder="Select payment frequency" options="{! v.rrOptions }"
+                                            fieldLevelHelp="Payment frequency" onchange="{!c.validateRecurringForm}"
+                                            messageWhenValueMissing="Required Field" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="slds-form__row">
+                                <div class="slds-form__item" role="listitem">
+                                    <div class="slds-form-element slds-form-element_stacked">
+                                        <div class="slds-size_1-of-2">
+                                            <lightning:input type="date" dateStyle="short" label="Start Date"
+                                                placeholder="--Select--" required="true" aura:id="req-fieldsrr"
+                                                value="{!v.rrStartDate}" min="{!v.mindate}"
+                                                messageWhenRangeUnderflow="Date must be after today's date"
+                                                messageWhenValueMissing="Required Field"
+                                                onchange="{!c.validateRecurringForm}" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="slds-form__row">
+                                <div class="slds-form__item" role="listitem">
+                                    <fieldset
+                                        class="slds-form-element slds-form-element_compound slds-form-element_stacked">
+                                        <div class="slds-form-element__row">
+                                            <div class="slds-size_1-of-2">
+                                                <lightning:input type="date" dateStyle="short" label="End Date"
+                                                    placeholder="--Select--" required="true" aura:id="req-fieldsrr"
+                                                    value="{!v.rrEndDate}" min="{!v.maxdate}"
+                                                    messageWhenRangeUnderflow="Date must be after start date"
+                                                    disabled="{!v.RecurIndefinitely}"
+                                                    onchange="{!c.validateRecurringForm}"
+                                                    messageWhenValueMissing="Required Field" />
+                                            </div>
+                                            <div class="slds-align-middle slds-m-left_x-small">
+                                                <ui:inputCheckbox labelClass="slds-float--right"
+                                                    class="slds-cst-cbx_right" aura:id="checkbox"
+                                                    label="Recur Indefinitely" change="{!c.checkRecurIndefinitely}" />
+                                            </div>
+                                        </div>
+                                    </fieldset>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="slds-col slds-size_1-of-2">
+                            <div class="slds-form__row">
+                                <div class="slds-form__item" role="listitem">
+                                    <div class="slds-form-element slds-form-element_stacked">
+                                        <lightning:textarea label="Notes" placeholder="Input additional notes..."
+                                            value="{!v.rrNotes}" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Summary Block -->
+                            <aura:renderIf isTrue="{!v.showRRSummary}">
+                                <div class="slds-form__row">
+                                    <div class="slds-form__item" role="listitem">
+                                        <div class="slds-text-title slds-color slds-m-vertical_small">
+                                            Summary
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="slds-form__row">
+                                    <div class="slds-form__item" role="listitem">
+                                        <div class="slds-box slds-box-cst slds-size_1-of-1">
+                                            <div class="demo-only" style="width: 30rem;">
+                                                <article class="slds-tile">
+                                                    <div class="slds-tile__detail">
+                                                        <dl class="slds-list_horizontal slds-wrap">
+                                                            <dt class="slds-item_label slds-cst-dt slds-color">
+                                                                Recurring Payment Amount:
+                                                            </dt>
+                                                            <dd class="slds-item_detail slds-cst-dd slds-color">
+                                                                <lightning:formattedNumber
+                                                                    value="{!''+v.rrS.paymentTotal}" style="currency"
+                                                                    currencyCode="{!v.Settings.Ebiz_C__Currency__c}"
+                                                                    maximumFractionDigits="2" />
+                                                            </dd>
+                                                            <dt class="slds-item_label slds-cst-dt slds-color">
+                                                                Recurring Duration:
+                                                            </dt>
+                                                            <dd class="slds-item_detail slds-cst-dd slds-color">
+                                                                <lightning:formattedDateTime
+                                                                    value="{!v.rrS.rrStartDate}" year="numeric"
+                                                                    month="numeric" day="numeric" timeZone="UTC" /> -
+                                                                <aura:renderIf isTrue="{!v.RecurIndefinitely}">
+                                                                    Indefinite
+                                                                    <aura:set attribute="else">
+                                                                        <lightning:formattedDateTime
+                                                                            value="{!v.rrS.rrEndDate}" year="numeric"
+                                                                            month="numeric" day="numeric"
+                                                                            timeZone="UTC" />
+                                                                    </aura:set>
+                                                                </aura:renderIf>
+                                                            </dd>
+                                                            <dt class="slds-item_label slds-cst-dt slds-color">
+                                                                Payment Frequency:
+                                                            </dt>
+                                                            <dd class="slds-item_detail slds-cst-dd slds-color">
+                                                                {!v.rrS.rrFrequency}
+                                                            </dd>
+                                                            <aura:renderIf isTrue="{!v.RecurIndefinitely == false}">
+                                                                <dt class="slds-item_label slds-cst-dt slds-color">
+                                                                    Number of Payments:
+                                                                </dt>
+                                                                <dd class="slds-item_detail slds-cst-dd slds-color">
+                                                                    {!v.rrS.rrNoOfPays}
+                                                                </dd>
+                                                                <dt class="slds-item_label slds-cst-dt slds-color">
+                                                                    Total Payment Amount:
+                                                                </dt>
+                                                                <dd class="slds-item_detail slds-cst-dd slds-color">
+                                                                    <lightning:formattedNumber
+                                                                        value="{!''+v.rrS.rrPaysTotal}" style="currency"
+                                                                        currencyCode="{!v.Settings.Ebiz_C__Currency__c}"
+                                                                        maximumFractionDigits="2" />
+                                                                </dd>
+
+                                                            </aura:renderIf>
+                                                        </dl>
+                                                    </div>
+                                                </article>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </aura:renderIf>
+                        </div>
+                    </div>
+
+                    <!--=================================-->
+                    <aura:renderIf isTrue="{!v.showpaymentform}">
+                        <!--====== Tabs Pay by Block ======-->
+                        <div class="slds-tabs--default">
+                            <lightning:tabset>
+                                <lightning:tab label="Pay by Card" id="PayByCard"
+                                    onactive="{! c.handleParentActiveTab }">
+
+                                    <c:ComponentPayByCardContact aura:id="UseCmpPayByCard" parentComp="{!this}" conDetail="{!v.ConDetail}" saveCardsList="{!v.saveCardsList}" payByCardInfo="{!v.payByCardInfo}" pps="{!v.rrS}" disableSubmitBtn="{!v.disableSubmitBtn}" ObjectName="{!v.ObjectName}"
+                                        recordId="{!v.recordId}" />
+                                </lightning:tab>
+
+                                <lightning:tab label="Pay by Bank Account" id="PayByACH" onactive="{! c.handleParentActiveTab }">
+                                    <c:ComponentPayByACHContact aura:id="UseCmpPayByACH" parentComp="{!this}" conDetail="{!v.ConDetail}" saveACHList="{!v.saveACHList}" payByACHInfo="{!v.payByACHInfo}" pps="{!v.rrS}" disableSubmitBtn="{!v.disableSubmitBtn}" />
+                                </lightning:tab>
+
+                            </lightning:tabset>
+                        </div>
+                    </aura:renderIf>
+                    <!--=================================-->
+                </div>
+                <!--====== MODAL BOX BODY Part End ======-->
+
+                <!-- Scheduled dates modal start -->
+                <aura:if isTrue="{!v.isOpenScheduleDatesModal}">
+
+                    <!--###### MODAL BOX Start######-->
+                    <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true"
+                        aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open slds-modal_medium">
+                        <div class="slds-modal__container">
+                            <!-- ###### MODAL BOX HEADER Start ######-->
+                            <header class="slds-modal__header">
+                                <lightning:buttonIcon iconName="utility:close" onclick="{! c.closeScheduleDatesModel }"
+                                    alternativeText="close" variant="bare-inverse" class="slds-modal__close" />
+                                <h2 id="modal-heading-01" class="slds-text-heading_medium slds-hyphenate">Recurring
+                                    Scheduled Dates</h2>
+                            </header>
+
+                            <!--###### MODAL BOX BODY Part Start######-->
+                            <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1">
+
+                                <div class="slds-scrollable slds-grow" style="max-height: 300px">
+                                    <div class="slds-scrollable_none">
+                                        <div class="slds-modal__content slds-p-vertical_medium slds-text-align_center">
+                                            <table aria-multiselectable="false"
+                                                class="slds-table slds-table_cell-buffer slds-table_striped slds-table_bordered slds-border_left slds-border_right">
+                                                <thead>
+                                                    <tr class="slds-text-title=caps">
+                                                        <th scope="col">Payment Number</th>
+                                                        <th scope="col">Schedule Dates</th>
+                                                        <th scope="col">Amount</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <aura:iteration items="{!v.rrS.rrScheduledDates}" var="date"
+                                                        indexVar="index">
+                                                        <tr>
+                                                            <th scope="row">{!index+1}</th>
+                                                            <th scope="row">
+                                                                <lightning:formattedDateTime value="{!date}"
+                                                                    year="numeric" month="numeric" day="numeric"
+                                                                    timeZone="UTC" />
+                                                            </th>
+                                                            <th scope="row">
+                                                                <lightning:formattedNumber value="{!''+v.PaymentTotal}"
+                                                                    style="currency"
+                                                                    currencyCode="{!v.Settings.Ebiz_C__Currency__c}"
+                                                                    maximumFractionDigits="2" />
+                                                            </th>
+                                                        </tr>
+                                                    </aura:iteration>
+                                                </tbody>
+                                                <aura:if isTrue="{!v.RecurIndefinitely}">
+                                                    <th scope="row">Recurs Indefinitely</th>
+                                                </aura:if>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!--###### MODAL BOX FOOTER Part Start ######-->
+                            <footer class="slds-modal__footer">
+                                <div class="slds-clearfix">
+                                    <div class="slds-float_right">
+                                        <lightning:button class="slds-m-left_x-large" variant="brand" label="Close"
+                                            title="Close" onclick="{! c.closeScheduleDatesModel }" />
+                                    </div>
+                                    <aura:if isTrue="{!v.RecurIndefinitely == false}">
+                                        <div class="slds-float_right">
+                                            <div
+                                                class="slds-text-heading_medium slds-p-top_xxx-small slds-m-left_xx-small">
+                                                <lightning:formattedNumber value="{!''+v.rrS.rrPaysTotal}"
+                                                    style="currency" currencyCode="{!v.Settings.Ebiz_C__Currency__c}"
+                                                    maximumFractionDigits="2" />
+                                            </div>
+                                        </div>
+                                        <div class="slds-float_right">
+                                            <div class="slds-text-heading_medium slds-p-top_xxx-small">
+                                                Total :
+                                            </div>
+                                        </div>
+                                    </aura:if>
+                                </div>
+                            </footer>
+                        </div>
+                    </section>
+                    <div class="slds-backdrop slds-backdrop_open"></div>
+                    <!--###### MODAL BOX Part END Here ######-->
+
+                </aura:if>
+                <!-- =========== -->
+
+                <!--====== MODAL BOX FOOTER Part Start ======-->
+                <footer class="slds-modal__footer">
+                    <lightning:button variant="neutral" label="Cancel" title="Cancel" onclick="{! c.closeModel }" />
+                    <aura:if isTrue="{!v.ButtonVisibility}">
+                        <lightning:button variant="brand" label="View Schedule Dates" title="View Schedule Dates"
+                            onclick="{!c.PreviewScheduleDates}" />
+                    </aura:if>
+                    <lightning:button variant="brand" label="Schedule Recurring" title="Schedule Recurring"
+                        disabled="{!v.disableSubmitBtn}" onclick="{!c.ScheduleRecurring}" />
+                </footer>
+            </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open"></div>
+        <!--====== MODAL BOX Part END Here ======-->
+    </aura:if>
+</aura:component>

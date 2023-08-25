@@ -1,0 +1,15 @@
+.THIS .slds-icon-custom-custom15 {
+    background-color: #8b88db !important;
+}
+
+.THIS .slds-pill__action {
+    padding: 5px !important;
+}
+
+.THIS .slds-lookup {
+    width: 250px !important;
+}
+
+.THIS .slds-lookup .slds-form-element__label {
+    display: none !important;
+}

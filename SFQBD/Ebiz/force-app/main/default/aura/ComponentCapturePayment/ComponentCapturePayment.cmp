@@ -1,0 +1,155 @@
+<aura:component controller="EBC_ComponentController" implements="flexipage:availableForRecordHome,force:hasRecordId" access="global">
+    <aura:attribute name="ObjectName" type="String" default="" required="true" />
+    <aura:attribute name="recordId" type="String" default="" required="true" />
+    <aura:attribute name="Settings" type="Object" required="true" />
+    <aura:attribute name="accountId" type="String" default="" />
+    <aura:attribute name="Spinner" type="boolean" default="false" />
+    <aura:attribute name="isOpen" type="boolean" default="false" />
+    <aura:attribute name="btnDisable" type="boolean" default="false" />
+    <aura:attribute name="accountDetail" type="Account" />
+    <aura:attribute name="accountName" type="String" />
+    <aura:attribute name="orderDetail" type="Order" />
+
+    <aura:attribute name="quoteDetail" type="Quote" />
+
+    <aura:attribute name="accDetail" type="Account" />
+
+    <aura:attribute name="Transaction" type="EBizCharge_Transaction__c" />
+    <aura:attribute name="PaymentTotal" type="double" default="0.0" />
+    <aura:attribute name="Tax" type="double" default="0.0" />
+    <aura:attribute name="Amount" type="double" default="0.0" />
+    <aura:attribute name="c_Amount" type="double" default="0.0" />
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+
+    <!--loading spinner start -->
+    <aura:if isTrue="{!v.Spinner}">
+        <div aura:id="spinnerId" class="slds-spinner_container" style="position: fixed; z-index:9999;">
+            <lightning:spinner aura:id="Spinner" alternativeText="Loading" size="medium" variant="brand" />
+        </div>
+    </aura:if>
+    <!-- Loading spinner end-->
+
+    <aura:if isTrue="{!v.isOpen}">
+        <!--###### MODAL BOX Start######-->
+        <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open slds-modal_medium">
+            <div class="slds-modal__container">
+                <!-- ###### MODAL BOX HEADER Start ######-->
+                <header class="slds-modal__header">
+                    <lightning:buttonIcon iconName="utility:close" onclick="{! c.closeModel }" alternativeText="close" variant="bare-inverse" class="slds-modal__close" />
+                    <aura:if isTrue="{!v.ObjectName == 'Order'}">
+                        <h2 id="modal-heading-01" class="slds-text-heading_medium slds-hyphenate">Take Payment on Order</h2>
+                    </aura:if>
+                    <aura:if isTrue="{!v.ObjectName == 'Quote'}">
+                        <h2 id="modal-heading-01" class="slds-text-heading_medium slds-hyphenate">Take Payment on Quote</h2>
+                    </aura:if>
+                </header>
+                <!--###### MODAL BOX BODY Part Start######-->
+                <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1">
+                    <!--====== Model Content Header Part Start ======-->
+                    <div role="banner">
+                        <div class="slds-grid">
+                            <div class="slds-col slds-has-flexi-truncate">
+                                <div class="slds-media slds-media--center">
+                                    <div class="slds-media__figure">
+                                        <aura:if isTrue="{!v.ObjectName == 'Order'}">
+                                            <lightning:icon iconName="standard:orders" size="medium" />
+                                        </aura:if>
+                                        <aura:if isTrue="{!v.ObjectName == 'Quote'}">
+                                            <lightning:icon iconName="standard:quotes" size="medium" />
+                                        </aura:if>
+                                    </div>
+                                    <div class="slds-media__body">
+                                        <aura:if isTrue="{!v.ObjectName == 'Order'}">
+                                            <p class="slds-page-header__title slds-truncate slds-align-middle" title="Order Number">Order #: {!v.orderDetail.OrderNumber}</p>
+                                        </aura:if>
+                                        <aura:if isTrue="{!v.ObjectName == 'Quote'}">
+                                            <p class="slds-page-header__title slds-truncate slds-align-middle" title="Quote Number">Quote #: {!v.quoteDetail.QuoteNumber}</p>
+                                        </aura:if>
+                                        <p class="slds-text-body--small page-header__info">Account: {!v.accountName}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="slds-col slds-no-flex slds-grid slds-align-bottom">
+                                <div class="slds-text-heading--small">
+                                    Capture Total:
+                                    <lightning:formattedNumber value="{!v.PaymentTotal}" aura:id='capture-total' style="currency" currencyCode="{!v.Settings.Ebiz_C__Currency__c}" maximumFractionDigits="2" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <hr />
+                    <div class="slds-page-header slds-m-vertical_medium">
+                        <div class="slds-page-header__row">
+                            <div class="slds-page-header__col-title">
+                                Pre-auth Information
+                            </div>
+                        </div>
+                    </div>
+
+                    <!--====== Pre auth body content ======-->
+                    <div class="slds-m-horizontal_large">
+                        <div class="slds-grid slds-gutters slds-m-bottom_medium">
+                            <div class="slds-col slds-size_1-of-4">
+                                <aura:if isTrue="{!v.ObjectName == 'Order'}">
+                                    Order Total:
+                                    <lightning:formattedNumber value="{!v.orderDetail.TotalAmount}" style="currency" currencyCode="{!v.Settings.Ebiz_C__Currency__c}" maximumFractionDigits="2" />
+                                </aura:if>
+                                <aura:if isTrue="{!v.ObjectName == 'Quote'}">
+                                    Quote Total: ${!v.quoteDetail.GrandTotal}
+                                </aura:if>
+                            </div>
+                            <div class="slds-col slds-size_1-of-2">
+                                Date:
+                                <lightning:formattedDateTime value="{!v.Transaction.CreatedDate}" year="numeric" month="numeric" day="numeric" />
+                            </div>
+                        </div>
+                        <div class="slds-grid slds-gutters">
+                            <div class="slds-col slds-size_1-of-4">
+                                Pre-auth Amount:
+                                <lightning:formattedNumber value="{!v.Transaction.Ebiz_C__Auth_Amount__c}" style="currency" currencyCode="{!v.Settings.Ebiz_C__Currency__c}" maximumFractionDigits="2" />
+                            </div>
+                            <div class="slds-col slds-size_1-of-2">
+                                Payment Method:
+                                <aura:if isTrue="{!v.Transaction.Ebiz_C__Card_Type__c == 'V'}">
+                                    <img src="{!$Resource.visaImage}" height="25" width="25" />
+                                </aura:if>
+                                <aura:if isTrue="{!v.Transaction.Ebiz_C__Card_Type__c == 'M'}">
+                                    <img src="{!$Resource.MasterCardImage}" height="25" width="25" />
+                                </aura:if>
+                                <aura:if isTrue="{!v.Transaction.Ebiz_C__Card_Type__c == 'A'}">
+                                    <img src="{!$Resource.AmericanExpressImage}" height="25" width="25" />
+                                </aura:if>
+                                <aura:if isTrue="{!v.Transaction.Ebiz_C__Card_Type__c == 'DS'}">
+                                    <img src="{!$Resource.DiscoverImage}" height="25" width="25" />
+                                </aura:if>
+                                &nbsp; ending in {!v.Transaction.Ebiz_C__Last_X_Digit__c}, "main card"
+                            </div>
+                        </div>
+                        <hr />
+                        <div class="slds-grid slds-gutters">
+                            <div class="slds-col slds-size_1-of-3">
+                                <div class="slds-form__row">
+                                    <div class="slds-form__item" role="listitem">
+                                        <div class="slds-form-element slds-form-element_stacked">
+                                            <lightning:input aura:id="field" type="number" required="true" label="Capture Amount" value="{!v.c_Amount}" formatter="currency" step="0.01" onfocusout="{!c.onChangeAmount}" disabled="false" messageWhenBadInput="Input numeric values for amount" messageWhenTypeMismatch="Input a valid amount"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!--============================-->
+                </div>
+                <!--###### MODAL BOX FOOTER Part Start ######-->
+                <footer class="slds-modal__footer">
+                    <lightning:button variant="neutral" label="Cancel" title="Cancel" onclick="{! c.closeModel }" />
+                    <lightning:button variant="brand" disabled="{!v.btnDisable}" label="Capture" title="Capture" onclick="{! c.capturePayHandler }" />
+                </footer>
+            </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open"></div>
+        <!--###### MODAL BOX Part END Here ######-->
+    </aura:if>
+
+</aura:component>

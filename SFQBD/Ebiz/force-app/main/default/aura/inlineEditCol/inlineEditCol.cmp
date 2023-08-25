@@ -1,0 +1,68 @@
+<aura:component>
+    <aura:attribute name="singleRec" type="sobject" />
+    <aura:attribute name="editCol" type="string" default="" />
+    <aura:attribute name="EmailEditMode" type="boolean" default="false" />
+    <aura:attribute name="paymentEditMode" type="boolean" default="false" />
+    <aura:attribute name="CompName" type="String" required="true" />
+    <aura:attribute name="parentComp" type="Aura.Component" required="true" />
+    <aura:attribute name="showErrorClass" type="boolean" default="false" />
+
+    <aura:renderIf isTrue="{!v.editCol== 'Email'}">
+        <td ondblclick="{!c.inlineEditColmun}" class="{! v.showErrorClass == true ? 'slds-cell-edit slds-has-error' : 'slds-cell-edit'}">
+            <span class="slds-grid slds-grid_align-spread">
+                <aura:if isTrue="{!v.EmailEditMode == false}">
+                    <span class="slds-truncate" title="Payment">{!v.singleRec.accEmail}</span>
+            <button onclick="{!c.inlineEditColmun}" class="slds-button slds-button_icon slds-cell-edit__button slds-m-left_x-small" tabindex="0" title="Edit Payment">
+                        <lightning:icon iconName="utility:edit" size="xx-small" alternativeText="edit" />
+                    </button>
+            <aura:set attribute="else">
+                <section tabindex="0" class="slds-popover slds-popover_edit" role="dialog" style="width:200px;position: absolute; top: 0px">
+                    <div class="slds-popover__body" style="width:90%;">
+                        <div class="slds-form-element slds-grid slds-wrap">
+                            <div class="slds-form-element__control slds-grow">
+                                <ui:inputText class="slds-input inputEmailWidth" labelClass="slds-form-element__label slds-form-element__label_edit slds-no-flex" aura:id="inputId" blur="{!c.closeInputField}" change="{!c.emailHandler}" label="Email" value="{!v.singleRec.accEmail}" />
+                            </div>
+                        </div>
+                    </div>
+                    <span id="form-end" tabindex="0"></span>
+                </section>
+            </aura:set>
+            </aura:if>
+            </span>
+        </td>
+    </aura:renderIf>
+    <aura:renderIf isTrue="{!v.editCol== 'Amount'}">
+        <aura:if isTrue="{!v.singleRec.isAllowPartialPay}">
+            <td ondblclick="{!c.inlineEditColmun}" class="{! v.showErrorClass == true ? 'slds-cell-edit slds-has-error' : 'slds-cell-edit'}">
+                <span class="slds-grid slds-grid_align-spread">
+                    <aura:if isTrue="{!v.paymentEditMode == false}">
+                        <span class="slds-truncate" title="Payment">
+                            <lightning:formattedNumber value="{!v.singleRec.AmountDue}" style="currency" currencyCode="USD" maximumFractionDigits="2" />
+                        </span>
+                <button onclick="{!c.inlineEditColmun}" class="slds-button slds-button_icon slds-cell-edit__button slds-m-left_x-small" tabindex="0" title="Edit Payment">
+                            <lightning:icon iconName="utility:edit" size="xx-small" alternativeText="edit" />
+                        </button>
+                <aura:set attribute="else">
+                    <section tabindex="0" class="slds-popover slds-popover_edit" role="dialog" style="width:90%;position: absolute; top: 0px">
+                        <div class="slds-popover__body" style="width:90%;">
+                            <div class="slds-form-element slds-grid slds-wrap">
+                                <div class="slds-form-element__control slds-grow">
+                                    <ui:inputCurrency class="slds-input inputFieldWidth" labelClass="slds-form-element__label slds-form-element__label_edit slds-no-flex" aura:id="inputId" blur="{!c.closeInputField}" change="{!c.paymentHandler}" label="Payment" value="{!v.singleRec.AmountDue}"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                        <span id="form-end" tabindex="0"></span>
+                    </section>
+                </aura:set>
+        </aura:if>
+        </span>
+        </td>
+        <aura:set attribute="else">
+            <td data-label="Amount Due">
+                <span class="slds-truncate" title="Payment">{!'$'+v.singleRec.AmountDue}</span>
+            </td>
+        </aura:set>
+        </aura:if>
+    </aura:renderIf>
+</aura:component>

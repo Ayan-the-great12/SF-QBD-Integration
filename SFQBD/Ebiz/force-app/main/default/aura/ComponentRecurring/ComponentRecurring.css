@@ -1,0 +1,31 @@
+.THIS .slds-align-middle {
+    padding-top: 18px !important;
+}
+
+.THIS .slds-cst-dt {
+    width: 40% !important;
+}
+
+.THIS .slds-cst-dd {
+    width: 40% !important;
+}
+
+.THIS .slds-color {
+    color: var(--lwc-brandTextLink, rgb(0, 109, 204)) !important;
+}
+
+.THIS .slds-box-cst {
+    border: var(--lwc-borderWidthThin, 1px) solid var(--lwc-brandTextLink, rgb(0, 109, 204)) !important;
+}
+
+.THIS .slds-cst-cbx_right {
+    float: right;
+    margin-right: 15px;
+}
+
+.THIS .slds-Modal-Schedule { 
+     max-width: calc(100vh - 11px); 
+     max-width: 95%; 
+      overflow-y: hidden;
+     overflow-x:hidden 
+}

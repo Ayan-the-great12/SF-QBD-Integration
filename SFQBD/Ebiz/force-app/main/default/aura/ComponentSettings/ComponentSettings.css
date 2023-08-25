@@ -1,0 +1,25 @@
+.THIS .slds-cst-cbx_right {
+    float: right;
+    margin-right: 15px;
+}
+
+.THIS .cst-width {
+    width: 425px;
+}
+
+.THIS .cst-width input[type="text"] {
+    width: 80px;
+}
+
+.THIS .slds-size_4-of-12 {
+    width: 39.333% !important;
+}
+
+.THIS .slds-page-header {
+    padding: 7px !important;
+}
+
+.THIS .FieldMapper {
+    background-image: linear-gradient(to right, #2d4bce, #44baf4);
+    color: white;
+}

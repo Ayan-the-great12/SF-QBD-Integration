@@ -1,0 +1,251 @@
+<aura:component controller="eBc_AccountController" implements="flexipage:availableForAllPageTypes" access="global">
+    <ltng:require styles="{!$Resource.NoHeader}" />
+    <aura:attribute name="Spinner" type="boolean" default="false" />
+    <aura:attribute name="ShowSplash" type="boolean" default="false" />
+    <aura:attribute type="String" name="sortField" />
+    <aura:attribute type="Boolean" name="sortAsc" default="true" />
+    <aura:attribute type="Integer" name="pageNumber" default="1" />
+    <aura:attribute type="Integer" name="maxPage" default="1" />
+    <aura:attribute name="selectedLookUpRecord" type="sObject" default="{}" />
+    <aura:attribute name="isSelectAll" type="string" default="" />
+    <aura:attribute name="totalSyncedAccounts" type="Integer" default="0" />
+    <aura:attribute name="allAccounts" type="Object" />
+    <aura:attribute name="allData" type="List" />
+    <aura:attribute name="SelectedRecords" type="Object" />
+    <aura:attribute name="accountList" type="List" default="[]" />
+    <aura:attribute name="disableSyncBtn" type="boolean" default="true" />
+    <aura:attribute name="UseFullAmountForAVS" type="boolean" default="false" />
+    <aura:attribute name="recDetail" type="sObject" />
+    <aura:attribute name="showAccModal" type="boolean" default="false" />
+    <aura:attribute name="RecordTypeOption" type="List"/>
+    <aura:attribute name="AccountRecordSave" type="boolean" default="false" />
+    <aura:attribute name="Idsvalue" type="String" />
+    <aura:attribute name="Checker" type="boolean" default="true"/> 
+    <aura:attribute name="showTakePayModal" type="boolean" default="false" />
+    <aura:attribute name="showReqPayModal" type="boolean" default="false" />
+    <aura:attribute name="setRecordId" type="String" />
+    <aura:attribute name="accDetail" type="Account" />
+    <aura:attribute name="saveCardsList" type="List" />
+    <aura:attribute name="saveACHList" type="List" />
+    <aura:attribute name="TaxTitle" type="string" default="" />
+    <aura:attribute name="customTax" type="double" default="0.0" />
+    <aura:attribute name="Settings" type="Object" />
+    <aura:attribute name="emailTemplist" type="list" />
+    <aura:handler name="callParentCmpMethod" action="{!c.handleCompEvent}" event="c:ParentEvent" />
+    <aura:handler name="change" value="{!v.selectedLookUpRecord}" action="{!c.verifyLookUp}" />
+    <aura:attribute name="ShowWarn" type="Boolean" default="false" required="true" />
+    <aura:handler name="init" value="{! this }" action="{! c.doInit }" />
+
+    <!-- =====Data table attribute == -->
+    <aura:attribute name="accountColumns" type="List" />
+    <aura:attribute name="accountData" type="Object" />
+    <aura:attribute name="sortBy" type="String" />
+    <aura:attribute name="sortDirection" type="String" />
+    <aura:attribute name="maxRowSelection" type="Integer" default="50" />
+    <aura:attribute name="selectedRowsCount" type="Integer" default="0" />
+    <!-- =========== -->
+    <div class="container">
+
+        <!--loading spinner-->
+        <aura:if isTrue="{!v.Spinner}">
+            <div aura:id="spinnerId" class="slds-spinner_container" style="position: fixed;">
+                <lightning:spinner aura:id="Spinner" alternativeText="Loading" size="medium" variant="brand" />
+            </div>
+        </aura:if>
+        <!-- =========== -->
+        <aura:renderIf isTrue="{!v.ShowWarn}">
+            <c:StartUpMessage />
+        </aura:renderIf>
+        <!--Main Page Content Area-->
+        <div class="slds-card slds-card_boundary slds-grid slds-grid--vertical">
+              <!--Custom Page Header-->
+              <div class="slds-page-header  slds-page-header_joined slds-page-header_bleed slds-page-header slds-shrink-none">
+                <div class="slds-grid">
+                    <div class="slds-col slds-has-flexi-truncate">
+                        <div class="slds-media slds-no-space slds-grow" >
+                            <div class="slds-media__figure">
+                                <span class="slds-icon_container slds-icon-custom-custom15">
+                                    <lightning:icon iconName="custom:custom15" alternativeText="" />
+                                </span>
+                            </div>
+                            <div class="slds-media__body slds-align-middle">
+                                <nav role="navigation" aria-label="Breadcrumbs">
+                                    <ol class="slds-breadcrumb slds-list--horizontal slds-wrap">
+                                        <li class="slds-breadcrumb__item slds-line-height--reset">
+                                              <span class="slds-var-p-right_x-small">Accounts to sync  <lightning:badge label="{!v.selectedRowsCount}" iconName="utility:success"/></span>
+                                        </li>
+                                    </ol>
+                                </nav>
+                                <div class="slds-grid">
+                                    <h1 class="slds-truncate slds-page-header__title slds-text-color--default" >
+                                        <div class="slds-p-right--x-large">
+                                            <span class="slds-page-header__title slds-cell-wrap" title="All Accounts">
+                                                All Accounts
+                                            </span>
+                                        </div>        
+                                    </h1> 
+                                </div>
+                            </div>   
+                        </div>  
+                    </div>
+                    <span>
+                        <lightning:input 
+                                      type="search" 
+                                      lable="Search" 
+                                      placeholder="Search for Approve Date" 
+                                      aura:id="SearchBox"
+                                      onchange="{!c.searchTable}"/>
+                    </span>      
+                    <div class="slds-col slds-no-flex slds-grid slds-align-top slds-p-bottom--xx-small">
+                        <div class="slds-col slds-no-flex slds-grid slds-align-top slds-shrink slds-m-right_small slds-m-top_medium">   
+                            &nbsp;  &nbsp; 
+                            <c:EBizCharge_CustomLookup objectAPIName="account" 
+                                            IconName="standard:account" 
+                                            selectedRecord="{!v.selectedLookUpRecord}" 
+                                            label=""
+                                            />
+                        </div>
+                        <div class="slds-col slds-no-flex slds-grid slds-align-top slds-shrink slds-m-top_medium">	
+                            <lightning:button label="New Account"
+                                              variant="brand"
+                                              iconName="utility:new"
+                                              name="new"
+                                              onclick="{!c.CreateNewAccount}"
+                                              />
+                            <lightning:button label="Sync Accounts"
+                                              variant="brand"
+                                              iconName="utility:sync"
+                                              name="Sync Accounts"
+                                              disabled="{!v.disableSyncBtn}"
+                                              onclick="{!c.SyncAccounts}"
+                                              />
+                        </div>
+                    </div>
+                </div>   
+                <div class="slds-grid">
+                    <div class="slds-col slds-align-bottom">
+                        <p class="slds-text-body--small">
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <!-- =========== -->
+            <div class="slds-grid slds-m-bottom_xx-large">
+                <div style="height :800px; width:100%">
+                    <aura:renderIf isTrue="{!v.allAccounts.length &gt; 0}">
+                        <lightning:datatable aura:id="accountTable" keyField="Id" class="customDataTable" hideCheckboxColumn="false" maxRowSelection="{! v.maxRowSelection }" columns="{!v.accountColumns}" data="{!v.allAccounts}" sortedBy="{!v.sortBy}" sortedDirection="{!v.sortDirection}"
+                            onsort="{!c.handleSort}" onrowaction="{! c.handleRowAction }" onrowselection="{! c.updateSelectedText }" />
+                        <aura:set attribute="else">
+                            <div class="slds-illustration slds-illustration_small">
+                                <img src="{!$Resource.EmptyState}" />
+                            </div>
+                        </aura:set>
+                    </aura:renderIf>
+                </div>
+            </div>
+            <!--============Start Pagination==========-->
+            <aura:renderIf isTrue="{!v.allAccounts.length &gt; 0}">
+            </aura:renderIf>
+            <!-- =========== -->
+        </div>
+    </div>
+    <aura:if isTrue="{!v.ShowSplash}">
+        <!--###### MODAL BOX Start######-->
+        <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open slds-modal_medium">
+            <div class="slds-modal__container">
+                <div id="modal-content-id-1">
+                    <div class="slds-modal__container" style="filter: drop-shadow(2px 4px 6px royalblue);">
+                        <div class="slds-modal__content" style="margin-top: 69px" id="welcome-mat-397-content">
+                            <div class="slds-welcome-mat slds-welcome-mat_splash">
+                                <div class="slds-welcome-mat__content slds-grid">
+                                    <div class="slds-welcome-mat__info slds-size_1-of-1">
+                                        <div class="slds-welcome-mat__info-content" style="margin-top: 37%;">
+                                            <h2 class="slds-welcome-mat__info-title EbizFontColor" id="welcome-mat-397-label">Connect your payments!</h2>
+                                            <div class="slds-welcome-mat__info-description slds-text-longform">
+                                                <p>Welcome to EBiz Charge Component,Simplify the way your business accepts payments with the #1 integrated payments software.</p>
+                                            </div>
+                                            <div class="slds-welcome-mat__info-actions">
+                                                <a href="https://ebizcharge.com/"><button class="slds-button slds-button_brand">GET ME TO SETTINGS</button></a>
+                                                <div class="slds-m-top_large">
+                                                    <div class="slds-form-element">
+                                                        <div class="slds-form-element__control">
+                                                            <div class="slds-checkbox">
+                                                                <input type="checkbox" name="options" id="checkbox-unique-id-25" value="checkbox-unique-id-25" />
+                                                                <label class="slds-checkbox__label" for="checkbox-unique-id-25">
+                                                                    <span class="slds-checkbox_faux"></span>
+                                                                    <span class="slds-form-element__label">Don&#x27;t show this again</span>
+                                                                </label>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <img class="EbizChargeMateSVG" src="{!$Resource.EbizChargeSVG}" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </aura:if>
+    <aura:renderIf isTrue="{!v.RecordTypeOption.length &gt; 0}">   
+        <aura:if isTrue="{!v.showAccModal}">
+            <!--###### MODAL BOX Start######--> 
+            <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open slds-modal_medium">
+                <div class="slds-modal__container">
+                    <!-- ###### MODAL BOX HEADER Start ######-->
+                    <header class="slds-modal__header">
+                        <lightning:buttonIcon iconName="utility:close"
+                                              onclick="{! c.closeModel }"
+                                              alternativeText="close"
+                                              variant="bare-inverse"
+                                              class="slds-modal__close"/>
+                        <h2 id="modal-heading-01" class="slds-text-heading_medium slds-hyphenate">New Account</h2>
+                    </header>
+                    <!--###### MODAL BOX BODY Part Start######-->
+                    <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1">
+                        <lightning:radioGroup name="radioGroup"
+                                              label="Select a record type"
+                                              options="{! v.RecordTypeOption }"
+                                              value="{! v.Idsvalue }"
+                                              type="radio"
+                                              onchange="{! c.TransHandler }"/>   
+                    </div>
+                    <footer class="slds-modal__footer">
+                        <lightning:button variant="neutral" 
+                                          label="Cancel"   
+                                          onclick="{! c.closeModel }"/>
+                            <lightning:button variant="brand" 
+                                              label="Save"
+                                              onclick="{!c.AccountRecordSave}" 
+                                              disabled="{!v.Checker}"/>
+                            <!-- <aura:set attribute="else">
+                        </aura:if> -->
+                    </footer>
+                </div>  
+            </section>
+            <div class="slds-backdrop slds-backdrop_open"></div>
+       
+        </aura:if>
+        <aura:set attribute="else">
+            <div class="slds-illustration slds-illustration_small">
+                <img src="{!$Resource.EmptyState}" />
+            </div>
+        </aura:set> 
+    </aura:renderIf>
+    <c:EBizCharge_AccountRecord isOpen="{!v.AccountRecordSave}" setRecordId="{!v.setRecordId}" Settings="{!v.Settings}"  selectedRecordTypeId ="{!v.Idsvalue}"/>
+    <aura:if isTrue="{!v.showTakePayModal}">
+    <c:EBizCharge_AccountPayment isOpen="{!v.showTakePayModal}" Tax="{!v.customTax}" Settings="{!v.Settings}" accDetail="{!v.accDetail}" TaxTitle="{!v.TaxTitle}" saveCardsList="{!v.saveCardsList}" saveACHList="{!v.saveACHList}" UseFullAmountForAVS="{!v.UseFullAmountForAVS}" />
+   </aura:if>
+   <aura:set attribute="else">
+    <div class="slds-illustration slds-illustration_small">
+        <img src="{!$Resource.EmptyState}" />
+    </div>
+</aura:set> 
+    <c:EBizCharge_AccountRequestPayment isOpen="{!v.showReqPayModal}" recDetail="{!v.recDetail}" emailTemplist="{!v.emailTemplist}" />
+
+    <!-- =========== -->
+</aura:component>

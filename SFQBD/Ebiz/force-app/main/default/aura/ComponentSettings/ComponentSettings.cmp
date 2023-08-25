@@ -1,0 +1,80 @@
+<aura:component controller="EBC_ComponentController" implements="flexipage:availableForRecordHome,force:hasRecordId" access="global">
+    <aura:attribute name="CS" type="EBizcharge_Setting__c" default="{'sobjectType': 'EBizcharge_Setting__c'}" />
+    <aura:attribute name="Spinner" type="boolean" default="false" />
+    <aura:attribute name="isOpen" type="boolean" default="false" />
+    <aura:attribute name="TaxAction" type="List" />
+    <aura:attribute name="TaxManualType" type="List" />
+    <aura:attribute name="TaxTypeOptions" type="List" />
+    <aura:attribute name="isCustomObject" type="String" default="false" />
+    <aura:attribute name="ObjectConfig" type="EBiz_Object_Config__c" />
+    <aura:attribute name="ObjectName" type="String" default="" />
+    <aura:attribute name="ObjectLabel" type="String" default="" />
+    <aura:attribute name="obj" type="Object" />
+    <aura:attribute name="AmuontFieldsList" type="List" default="[]" />
+    <aura:attribute name="EmailFieldsList" type="List" default="[]" />
+    <aura:attribute name="NameFieldsList" type="List" default="[]" />
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+    <aura:handler event="force:refreshView" action="{!c.doInit}" />
+    <div class="slds-m-around_xx-large">
+        <aura:if isTrue="{!v.isOpen}">
+            <!--loading spinner start -->
+            <aura:if isTrue="{!v.Spinner}">
+                <div aura:id="spinnerId" class="slds-spinner_container" style="position: fixed; z-index:9999;">
+                    <lightning:spinner aura:id="Spinner" alternativeText="Loading" size="medium" variant="brand" />
+                </div>
+            </aura:if>
+            <!-- Loading spinner end-->
+
+            <!--====== MODAL BOX Start======-->
+            <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+                <div class="slds-modal__container">
+                    <!-- ====== MODAL BOX HEADER Start ======-->
+                    <header class="slds-modal__header">
+                        <lightning:buttonIcon iconName="utility:close" onclick="{! c.closeModel }" alternativeText="close" variant="bare-inverse" class="slds-modal__close" />
+                        <h2 id="modal-heading-01" class="slds-text-heading_medium slds-hyphenate">EBizCharge Component Settings</h2>
+                    </header>
+                    <!--====== MODAL BOX BODY Part Start======-->
+                    <div class="slds-modal__content slds-p-around_small" id="modal-content-id-1">
+                        <div class="slds-page-header slds-m-vertical_medium">
+                            <div class="slds-page-header__row">
+                                <div class="slds-page-header__col-title">
+                                    Enable / Disable EBizCharge Components
+                                </div>
+                            </div>
+                        </div>
+                        <div class="slds-form-element slds-form-element_horizontal slds-size_3-of-4 slds-cst_padding">
+                            <lightning:input type="checkbox" checked="{!v.CS.Ebiz_C__EBizcharge_Process_Payment__c}" label="Process Payment" aura:id="processpaymentcheckbox" disabled="{!and(or(v.ObjectName == 'Order',v.ObjectName == 'Quote'),
+                                             or(v.obj.Ebiz_C__EBizCharge_Order_Status__c == 'Paid',v.obj.Ebiz_C__EBizCharge_Quote_Status__c == 'Paid')
+                                             )}" />
+                        </div>
+
+                        <div class="slds-form-element slds-form-element_horizontal slds-size_3-of-4 slds-cst_padding">
+                            <lightning:input type="checkbox" checked="{!v.CS.Ebiz_C__EBizcharge_Send_Email_Payment_Request__c}" label="Send Email Payment Request" aura:id="sendemailpaymentrequestcheckbox" disabled="{!v.ObjectName == 'Account' ||  v.ObjectName == 'Contact' || v.isCustomObject  == true || v.obj.Ebiz_C__EBizCharge_Order_Status__c == 'Paid' || v.obj.Ebiz_C__EBizCharge_Quote_Status__c == 'Paid' ? true : false}"
+                            />
+                        </div>
+
+                        <div class="slds-form-element slds-form-element_horizontal slds-size_3-of-4 slds-cst_padding">
+                            <lightning:input type="checkbox" checked="{!v.CS.Ebiz_C__EBizcharge_Schedule_Recurring_Payment__c}" label="Schedule Recurring Payment" aura:id="schedulerecurringcheckbox" />
+                        </div>
+
+                        <div class="slds-form-element slds-form-element_horizontal slds-size_3-of-4 slds-cst_padding">
+                            <lightning:input type="checkbox" checked="{!v.CS.Ebiz_C__EBizcharge_Request_Payment_Method__c}" label="Request Payment Method" aura:id="requestpaymentmethodcheckbox" />
+                        </div>
+
+                        <div class="slds-form-element slds-form-element_horizontal slds-size_3-of-4 slds-cst_padding">
+                            <lightning:input type="checkbox" checked="{!v.CS.Ebiz_C__EBizcharge_Manage_Payment_Method__c}" label="Manage Payment Methods" aura:id="managepaymentmethodcheckbox" />
+                        </div>
+
+                    </div>
+                    <!--====== MODAL BOX FOOTER Part Start ======-->
+                    <footer class="slds-modal__footer">
+                        <lightning:button variant="neutral" label="Cancel" title="Cancel" onclick="{! c.closeModel }" />
+                        <lightning:button variant="brand" label="Save" title="Save" onclick="{! c.saveSettings }" />
+                    </footer>
+                </div>
+            </section>
+            <div class="slds-backdrop slds-backdrop_open"></div>
+            <!--====== MODAL BOX Part END Here ======-->
+        </aura:if>
+    </div>
+</aura:component>

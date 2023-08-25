@@ -1,0 +1,160 @@
+<aura:component controller="eBc_TransactionsController" implements="flexipage:availableForAllPageTypes" access="global">
+    <ltng:require styles="{!$Resource.NoHeader}" />
+    <aura:attribute name="RefNum" type="String" />
+    <aura:attribute name="Settings" type="Object" />
+    <aura:attribute name="Spinner" type="boolean" default="false" />
+    <aura:attribute type="String" name="sortField" />
+    <aura:attribute type="Boolean" name="sortAsc" default="true" />
+    <aura:attribute name="ExportAs" type="List" default="[{'label': 'Export as CSV', 'value': 'csv'}]" />
+    <aura:attribute name="disableFindBtn" type="boolean" default="false" />
+    <aura:attribute name="disableClearBtn" type="boolean" default="true" />
+    <aura:attribute name="issearching" type="boolean" default="false" />
+    <aura:attribute name="FromDate" type="date" default="" />
+    <aura:attribute name="ToDate" type="date" default="" />
+    <aura:attribute name="emailAddress" type="String" default="" />
+    <aura:attribute name="Transcations" type="List" />
+    <aura:attribute name="SelectT" type="List" />
+    <aura:attribute name="TotalTransactions" type="Integer" default="0" />
+    <aura:attribute name="showModal" type="boolean" default="false" />
+    <aura:attribute name="actionString" type="sObject" default="{}" />
+    <aura:attribute name="ShowWarn" type="Boolean" default="false" required="true" />
+    <aura:attribute name="isSelectAll" type="boolean" default="false" />
+
+    <aura:handler name="init" value="{! this }" action="{! c.doInit }" />
+
+    <!-- =====Data table attribute == -->
+    <aura:attribute name="DataColumns" type="List" />
+    <aura:attribute name="TranscationsData" type="Object" />
+    <aura:attribute name="sortBy" type="String" />
+    <aura:attribute name="sortDirection" type="String" />
+    <aura:attribute name="maxRowSelection" type="Integer" default="50" />
+    <aura:attribute name="selectedRowsCount" type="Integer" default="0" />
+    <aura:attribute name="loadMoreOffset" type="Integer" default="20" />
+    <!-- =========== -->
+
+    <!--loading spinner-->
+    <aura:if isTrue="{!v.Spinner}">
+        <div aura:id="spinnerId" class="slds-spinner_container" style="position: fixed;">
+            <lightning:spinner aura:id="Spinner" alternativeText="Loading" size="medium" variant="brand" />
+        </div>
+    </aura:if>
+    <!-- =========== -->
+
+    <aura:renderIf isTrue="{!v.ShowWarn}">
+        <c:StartUpMessage />
+    </aura:renderIf>
+
+    <!--Main Page Content Area-->
+    <div class="slds-card slds-card_boundary slds-grid slds-grid--vertical">
+
+        <!--Custom Page Header-->
+        <div class="slds-page-header slds-page-header_joined" role="banner">
+            <div class="slds-page-header__row">
+                <div class="slds-page-header__col-title">
+                    <div class="slds-media">
+                        <div class="slds-media__figure">
+                            <span class="slds-icon_container slds-icon-standard-today">
+                                <lightning:icon iconName="standard:today" alternativeText="" />
+                            </span>
+                        </div>
+                        <div class="slds-media__body">
+                            <div class="slds-page-header__name">
+                                <div class="slds-page-header__name-title">
+                                    <h1>
+                                        <span>Transaction history to export
+                                            <lightning:badge label="{!v.selectedRowsCount}" iconName="utility:success" />
+                                        </span>
+                                        <span class="slds-page-header__title slds-cell-wrap" title="Recently Viewed">All
+                                            Transactions
+                                        </span>
+                                    </h1>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="slds-page-header__col-actions">
+                    <div class="slds-page-header__controls">
+                        <div class="slds-page-header__control">
+                            <ul class="slds-button-group-list">
+                                <li>
+                                    <div onkeypress="{!c.onChangeSearchText}">
+                                        <lightning:input style="width: 370px;" label="Press enter key after text to search" type="search" aura:id="searchInput" placeholder="Search by ref number, order number, or amount" isLoading="{! v.issearching }" />
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="slds-page-header__row slds-grid">
+                <div class="slds-col_bump-right slds-align-bottom">
+                    <p class="slds-text-body--small">
+                        <span class="countSortedByFilteredBy">Total Transactions: {!v.TotalTransactions} </span>
+                    </p>
+                </div>
+
+                <div class="slds-col slds-grid" style="justify-content: flex-end;">
+
+                    <div class="slds-m-top_x-small">
+                        <ui:inputCheckbox aura:id="viewAllCheckbox" change="{!c.getAllTranscations}" />
+                    </div>
+                    <div class="slds-m-left_x-small">
+                        <label class="slds-form-element__label slds-p-top_x-small">View All Transactions</label>
+                    </div>
+                    <div class="slds-m-left_xx-small">
+                        <label class="slds-form-element__label slds-p-top_x-small">Transactions From</label>
+                    </div>
+
+                    <div class="" style="width: 12%;">
+                        <lightning:input type="date" dateStyle="short" variant="label-hidden" value="{!v.FromDate}" onchange="{!c.validateForm}" />
+                    </div>
+
+                    <div class="slds-m-left_large">
+                        <label class="slds-form-element__label slds-p-top_x-small">To</label>
+                    </div>
+                    <div class="slds-m-left_xx-small" style="width: 12%;">
+                        <lightning:input type="date" dateStyle="short" variant="label-hidden" value="{!v.ToDate}" onchange="{!c.validateForm}" />
+                    </div>
+
+                    <div class="slds-m-left_medium">
+                        <lightning:button variant="brand" label="Find" disabled="{!v.disableFindBtn}" onclick="{!c.getTranscations}" />
+                    </div>
+                    <div class="slds-m-left_x-small">
+                        <lightning:button variant="brand" label="Reset Date Range" onclick="{!c.ClearDateRange}" />
+                    </div>
+
+                    <div class="slds-m-left_medium" style="width:15%;">
+                        <lightning:button variant="brand" label="   Export as csv   " onclick="{!c.handleExportAs}" />
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- =========== -->
+
+        <!--Custom Page Content-->
+        <div class="slds-grid slds-m-bottom_xx-large">
+            <div style="height :800px; width:100%">
+                <aura:renderIf isTrue="{!v.Transcations.length &gt; 0}">
+                    <lightning:datatable aura:id="ContactTable" keyField="Id" hideCheckboxColumn="false" columns="{!v.DataColumns}" data="{!v.Transcations}" sortedBy="{!v.sortBy}" loadMoreOffset="{! v.loadMoreOffset }" sortedDirection="{!v.sortDirection}" onsort="{!c.handleSort}"
+                        onrowaction="{! c.handleRowAction }" onrowselection="{! c.updateSelectedText }" />
+
+                    <aura:set attribute="else">
+                        <div class="slds-illustration slds-illustration_small">
+                            <img src="{!$Resource.EmptyState}" />
+                        </div>
+                    </aura:set>
+                </aura:renderIf>
+            </div>
+
+        </div>
+
+        <!-- =========== -->
+
+        <center><i class="helperTEXT"> Date and Time displayed in UTC coordinated universal time clock</i></center>
+
+        <c:EBizCharge_actionModalTransaction isOpen="{!v.showModal}" ReceiptEmail="{!v.emailAddress}" strObj="{!v.actionString}" Transcations="{!v.Transcations}" />
+    </div>
+    <!-- =========== -->
+</aura:component>

@@ -1,0 +1,209 @@
+<aura:component controller="EBC_ComponentController"
+    implements="forceCommunity:availableForAllPageTypes,flexipage:availableForAllPageTypes,force:lightningQuickAction,flexipage:availableForRecordHome,force:hasSObjectName,force:hasRecordId"
+    access="global">
+    <!-- New attribute for pay by Card -->
+    <aura:attribute name="payByCardInfo" type="sObject" default="{}" />
+    <aura:attribute name="pps" type="sObject" default="{}" />
+    <aura:attribute name="ObjectName" type="String" default="" required="true" />
+    <aura:attribute name="savePaymentMethod" type="boolean" default="true" />
+    <aura:attribute name="Amount" type="double" default="0.0" />
+    <aura:attribute name="Tax" type="double" default="0.0" />
+    <aura:attribute name="PaymentTotal" type="double" default="0.0" />
+    <aura:attribute name="orderDetail" type="Order" />
+    <aura:attribute name="OpportunityDetail" type="Opportunity" />
+    <aura:attribute name="UseFullAmountForAVS" type="boolean" default="false" />
+    <aura:attribute name="CustomCustName" type="String" />
+    <aura:attribute name="CustomCustId" type="String" />
+    <aura:attribute name="ObjectLabel" type="String" default="" required="true" />
+    <!-- New attribute for pay by CardEnd -->
+    <aura:attribute name="CustomCustomerDetail" type="EBizCharge_Fields_Config__c" />
+    <aura:attribute name="saveCardsList" type="List" />
+    <aura:attribute name="placeholderSC" type="string" default="" />
+    <aura:attribute name="disableSubmitBtn" type="boolean" default="true" />
+    <aura:attribute name="saveACHList" type="List" />
+    <aura:attribute name="ParentActiveTab" type="string" default="" />
+    <aura:attribute name="ComponentLabel" type="String" default="Pay Now" />
+    <aura:attribute name="Settings" type="Object" />
+    <aura:attribute name="placeholderSA" type="string" default="" />
+    <aura:attribute name="showModalPayMethodsForCustomCloud" type="boolean" default="false" />
+    <!-- For Experiance Cloud Fiel Map -->
+    <aura:attribute name="ObjectConfig" type="EBiz_Object_Config__c" />
+    <aura:attribute name="AmuontFieldsList" type="List" default="[]" />
+    <aura:attribute name="EmailFieldsList" type="List" default="[]" />
+    <aura:attribute name="NameFieldsList" type="List" default="[]" />
+    <aura:attribute name="ShowObjConfigModel" type="boolean" default="false" />
+    <aura:attribute name="sObjectName" type="String" />
+    <aura:attribute name="Spinner" type="boolean" default="false" />
+    <aura:attribute name="record" type="Object" />
+    <aura:attribute name="obj" type="Object" />
+    <aura:attribute name="recordError" type="String" />
+    <aura:attribute name="CustomObjectDetail" type="EBizCharge_Fields_Config__c" />
+    <aura:attribute name="savedCard" type="List" />
+    <aura:attribute name="savedACH" type="List" />
+    <aura:attribute name="savedCardList" type="List" />
+    <aura:attribute name="savedACHList" type="List" />
+    <aura:attribute name="payByACHInfo" type="sObject" default="{}" />
+    <aura:attribute name="isDisable" type="Boolean" default="true" />
+    <aura:attribute name="paymentMethodIDVar" type="String" default="" />
+    <aura:attribute name="resError" type="String" default="" />
+    <aura:attribute name="resResultCode" type="String" default="" />
+
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+    <aura:handler event="force:refreshView" action="{!c.forceHandler}" />
+    <force:recordData aura:id="orderrecord" layoutType="FULL" recordId="{!v.recordId}" targetError="{!v.recordError}"
+        targetRecord="{!v.record}" targetFields="{!v.obj}" recordUpdated="{!c.forceHandler}" mode="VIEW" />
+    <aura:if isTrue="{!v.Spinner}">
+        <div aura:id="spinnerId" class="slds-spinner_container" style="position: fixed;">
+            <lightning:spinner aura:id="Spinner" alternativeText="Loading" size="medium" variant="brand" />
+        </div>
+    </aura:if>
+    <div class="slds-float_right" style="width: 600px;">
+        <lightning:card>
+            <aura:set attribute="title">
+                <span class="slds-avatar slds-avatar_x-small" style="width:30px; height:30px">
+                    <img src="{!$Resource.EBizChargeLogo}" />
+                </span>
+                <span class=" slds-p-left_small" style='font-size: inherit;'>
+                    {!v.ComponentLabel}
+
+                </span>
+            </aura:set>
+            <aura:set attribute="actions">
+                <lightning:buttonIcon class="slds-p-bottom_x-small" iconName="utility:refresh" title="Component Refresh"
+                    variant="bare" alternativeText="Refresh" iconClass="dark" onclick="{!c.doInit}" />
+
+                <lightning:formattedNumber class="slds-text-title_bold slds-p-left_small"
+                    value="{!v.CustomCustomerDetail.Ebiz_C__EBizCharge_Amount_Source__c}" style="currency"
+                    currencyCode="{!v.Settings.Ebiz_C__Currency__c}" maximumFractionDigits="2" />
+            </aura:set>
+            <lightning:card>
+                <div class="slds-tabs--default">
+                    <lightning:tabset>
+                        <lightning:tab label="Pay by Card" id="PayByCard" onactive="{! c.handleParentActiveTab }">
+                            <c:EBizCharge_PayNow_CardMethod aura:id="UseCmpPayByCard" parentComp="{!this}"
+                                placeholderSC="{! v.placeholderSC }" CustomCustDetail="{!v.CustomCustomerDetail}"
+                                saveCardsList="{!v.savedCard}" payByCardInfo="{!v.payByCardInfo}"
+                                savePaymentMethod="{!v.savePaymentMethod}" pps="{!v.pps}"
+                                disableSubmitBtn="{!v.disableSubmitBtn}" />
+                        </lightning:tab>
+                        <lightning:tab label="Pay by Bank Account" id="PayByACH"
+                            onactive="{! c.handleParentActiveTab }">
+                            <c:EBizCharge_PayNow_ACHMethod aura:id="UseCmpPayByACH" parentComp="{!this}"
+                                placeholderSA="{!v.placeholderSA}" CustomCustDetail="{!v.CustomCustomerDetail}"
+                                saveACHList="{!v.savedACH}" payByACHInfo="{!v.payByACHInfo}"
+                                savePaymentMethod="{!v.savePaymentMethod}" pps="{!v.pps}"
+                                disableSubmitBtn="{!v.disableSubmitBtn}" />
+
+                        </lightning:tab>
+                    </lightning:tabset>
+                    <div class="slds-align_absolute-center slds-p-left_x-large slds-m-right_x-large"
+                        style="height:5rem">
+                        <lightning:button class="slds-button slds-button_neutral slds-size_7-of-7" variant="brand"
+                            label="{!'Pay  $' + v.CustomCustomerDetail.Ebiz_C__EBizCharge_Amount_Source__c }"
+                            onclick="{!c.processPayment}"
+                            value="{!v.CustomCustomerDetail.Ebiz_C__EBizCharge_Amount_Source__c}" />
+                    </div>
+                    <lightning:workspaceAPI aura:id="workspace" />
+
+                    <div class="slds-align_absolute-center">
+                        <lightning:button class="slds-button slds-button_outline-brand  slds-size_3-of-7"
+                            iconName="utility:inspector_panel" label="Manage Payment Methods"
+                            onclick="{! c.managePaymentForm }" />
+                        &nbsp;
+                        &nbsp;
+                        &nbsp;
+                        &nbsp;
+                        <lightning:button class="slds-button slds-button_outline-brand  slds-size_3-of-7"
+                            iconName="utility:moneybag" label="View Payment History"
+                            onclick="{! c.openPaymenthistoryTab }" />
+                    </div>
+                </div>
+            </lightning:card>
+            <!-- </div> -->
+        </lightning:card>
+    </div>
+    <aura:if isTrue="{!v.showModalPayMethodsForCustomCloud}">
+        <!--Experienced Cloud -->
+        <c:CompManagePaymentMethodForCloud managePaymentForm="{!v.showModalPayMethodsForCustomCloud}"
+            CustomCustomerDetail="{!v.CustomObjectDetail}" savedCardList="{!v.savedCardList}"
+            savedACHList="{!v.savedACHList}" />
+    </aura:if>
+
+
+
+    <div style="width:70%; height:100%">
+        <aura:if isTrue="{!v.ShowObjConfigModel}">
+            <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true"
+                aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+                <div class="slds-modal__container">
+                    <header class="slds-modal__header FieldMapper">
+                        <h2 id="modal-heading-01" class="slds-modal__title slds-hyphenate ">Bouns Fields with EbizCharge
+                            Component
+                        </h2>
+                    </header>
+                    <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1">
+                        <table class="slds-table slds-table_cell-buffer slds-no-row-hover slds-table_bordered">
+                            <tbody>
+                                <tr class="slds-hint-parent">
+                                    <th data-label="Customer Name" scope="row">Customer Name</th>
+                                    <th data-label="Customer Name" scope="row">
+                                        <lightning:badge label="Text(string)" />
+                                    </th>
+                                    <th data-label="Customer Name" scope="row">
+                                        <lightning:dynamicIcon type="trend" option="right" alternativeText="link" />
+                                    </th>
+                                    <th data-label="api's" style="margin-bottom: 18px;">
+                                        <lightning:combobox name="progress" class="slds-selectsCom"
+                                            value="{!v.ObjectConfig.Ebiz_C__EBizCustomerNameApi__c}"
+                                            placeholder="Select Name Field" options="{! v.NameFieldsList }"
+                                            onchange="{! c.handleChangeName }" />
+                                    </th>
+                                </tr>
+
+                                <tr class="slds-hint-parent">
+                                    <th data-label="Customer Name" scope="row">Customer Email</th>
+                                    <th data-label="Customer Name" scope="row">
+                                        <lightning:badge label="Email(string)" />
+                                    </th>
+                                    <th data-label="Customer Name" scope="row">
+                                        <lightning:dynamicIcon type="trend" option="right" alternativeText="link" />
+                                    </th>
+                                    <th data-label="api's">
+                                        <lightning:combobox name="progress" class="slds-selectsCom"
+                                            value="{!v.ObjectConfig.Ebiz_C__EBizCustomerEmailApi__c}"
+                                            placeholder="Select Email Field" options="{! v.EmailFieldsList }"
+                                            onchange="{! c.handleChangeEmail }" />
+                                    </th>
+                                </tr>
+
+                                <tr class="slds-hint-parent">
+                                    <th data-label="Customer Name" scope="row">Customer Amount</th>
+                                    <th data-label="Customer Name" scope="row">
+                                        <lightning:badge label="Currency(Decimal)" />
+                                    </th>
+                                    <th data-label="Customer Name" scope="row">
+                                        <lightning:dynamicIcon type="trend" option="right" alternativeText="link" />
+                                    </th>
+                                    <th data-label="api's">
+                                        <lightning:combobox class="slds-selectsCom" dropdownAlignment="bottom-left"
+                                            name="progress" value="{!v.ObjectConfig.Ebiz_C__EBizAmountApi__c}"
+                                            placeholder="Select Currency Field" options="{! v.AmuontFieldsList }"
+                                            onchange="{! c.handleChangeAmount }" />
+                                    </th>
+                                </tr>
+
+                            </tbody>
+                        </table>
+                    </div>
+                    <footer class="slds-modal__footer slds-modal__footer_directional">
+                        <lightning:button label="Don't show me again" iconName="utility:hide"
+                            onclick="{!c.ObjConfigModelHandle}" />
+                        <lightning:button label="Fields Map" iconName="utility:richtextoutdent"
+                            onclick="{!c.ObjConfigOnSave}" />
+                    </footer>
+                </div>
+            </section>
+            <div class="slds-backdrop slds-backdrop_open"></div>
+        </aura:if>
+    </div>
+</aura:component>

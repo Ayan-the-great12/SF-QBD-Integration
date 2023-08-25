@@ -1,0 +1,35 @@
+.THIS .slds-align-middle {
+    padding-top: 14px !important;
+}
+
+.THIS .cst-width .slds-form-element__label {
+    width: 110px !important;
+}
+
+.THIS .slds-cst-cbx_right {
+    float: right;
+    margin-right: 15px;
+}
+
+.THIS .slds-nav-vertical__action {
+    padding: 20px;
+    border-bottom: 1.5px solid #e8e5e6;
+}
+
+.THIS .slds-nav-vertical__item.slds-is-active .slds-nav-vertical__action {
+    box-shadow: none !important;
+}
+
+.THIS .slds-color_blue {
+    color: #489ae4 !important;
+    padding: 30px !important;
+}
+
+.THIS .right-align {
+    text-align: right;
+}
+
+.THIS .slds-dropdown-trigger .slds-dropdown {
+    height: 100px !important;
+    overflow: auto;
+}

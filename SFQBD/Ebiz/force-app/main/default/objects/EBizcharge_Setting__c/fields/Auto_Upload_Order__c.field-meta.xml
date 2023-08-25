@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Auto_Upload_Order__c</fullName>
+    <defaultValue>false</defaultValue>
+    <deprecated>false</deprecated>
+    <description>If value true, Order will upload on gateway upon creation or modification</description>
+    <externalId>false</externalId>
+    <inlineHelpText>If value true, Order will upload on gateway upon creation or modification</inlineHelpText>
+    <label>Auto Upload Order</label>
+    <trackTrending>false</trackTrending>
+    <type>Checkbox</type>
+</CustomField>

@@ -1,0 +1,355 @@
+<aura:component controller="eBc_ProcessPaymentController" implements="flexipage:availableForAllPageTypes" access="global">
+    <ltng:require styles="{!$Resource.NoHeader}" />
+    <aura:attribute name="showOrdModal" type="boolean" default="false" />
+    <aura:attribute name="Spinner" type="boolean" default="false" />
+    <aura:attribute type="String" name="sortField" />
+    <aura:attribute type="Boolean" name="sortAsc" default="true" />
+    <aura:attribute name="isSelectAll" type="boolean" default="false" />
+    <aura:attribute name="selectedLookUpRecord" type="sObject" default="{}" />
+    <aura:attribute name="OrderTotal" type="double" default="0.0" />
+    <aura:attribute name="TaxTitle" type="String" default="" />
+    <aura:attribute name="ActiveTab" type="string" default="" />
+    <aura:attribute name="paymentEditMode" type="boolean" default="false" />
+    <aura:attribute name="Tax" type="double" default="0.0" />
+    <aura:attribute name="Settings" type="Object" />
+    <aura:attribute name="accountDetail" type="sObject" />
+    <aura:attribute name="originalorderList" type="List" />
+    <aura:attribute name="saveCardsList" type="List" />
+    <aura:attribute name="saveCardsExtendedList" type="List" />
+    <aura:attribute name="saveACHList" type="List" />
+    <aura:attribute name="placeholderSA" type="string" default="" />
+    <aura:attribute name="placeholderSC" type="string" default="" />
+    <aura:attribute name="card4Degit" type="Integer" default="-" />
+    <aura:attribute name="disabledPayBy" type="Boolean" default="true" />
+    <aura:attribute name="disableSubmitBtn" type="Boolean" default="true" />
+    <aura:attribute name="disableScheduleRR" type="Boolean" default="true" />
+    <aura:attribute name="paymentTotal" type="double" default="0.0" />
+    <aura:attribute name="ExcludeTax" type="Boolean" default="false" required="true" />
+    <aura:attribute name="OS" type="sObject" default="{}" />
+    <aura:attribute name="ShowWarn" type="Boolean" default="false" required="true" />
+    <aura:attribute name="NoOfPayRequests" type="Integer" default="0" />
+
+    <aura:method name="updatePaymentTotal" action="{!c.SelectSingleOrder}" />
+    <aura:method name="updateOrderGrid" action="{!c.updateOrderGrid}" />
+    <aura:handler name="callParentCmpMethod" action="{!c.handleCompEvent}" event="c:ParentEvent" />
+    <aura:method name="callParentMethod" action="{!c.callParentCmpMethod}" />
+
+    <aura:handler name="init" value="{! this }" action="{! c.doinit }" />
+    <aura:handler name="change" value="{!v.Tax}" action="{!c.onChangeTax}" />
+
+    <aura:if isTrue="{!v.Spinner}">
+        <div aura:id="spinnerId" class="slds-spinner_container" style="position: fixed;">
+            <lightning:spinner aura:id="Spinner" alternativeText="Loading" size="medium" variant="brand" />
+        </div>
+    </aura:if>
+
+    <aura:renderIf isTrue="{!v.ShowWarn}">
+        <c:StartUpMessage />
+    </aura:renderIf>
+
+    <div class="slds-page-header slds-page-header_record-home">
+        <div class="slds-page-header__row">
+            <div class="slds-page-header__col-title">
+                <div class="slds-media">
+                    <div class="slds-media__figure">
+                        <span class="slds-icon_container slds-icon-custom-custom17">
+                            <lightning:icon iconName="custom:custom17" alternativeText="Orders" />
+                        </span>
+                    </div>
+                    <div class="slds-media__body">
+                        <div class="slds-page-header__name">
+                            <div class="slds-page-header__name-title">
+                                <h1>
+                                    <span>Process Payments</span>
+                                    <span class="slds-page-header__title slds-truncate">Payments on Orders</span>
+                                </h1>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="slds-col slds-no-flex slds-grid slds-align-top slds-shrink slds-m-right_small">
+                <aura:renderIf isTrue="{!v.selectedLookUpRecord.Id !=null}">
+                    <lightning:button label="Refresh" variant="brand" iconName="utility:sync" name="new" onclick="{!c.RefreshHandler}" />
+                </aura:renderIf>
+            </div>
+            <div class="slds-col slds-no-flex slds-grid slds-align-top slds-shrink">
+                <lightning:button label="New Order" variant="brand" iconName="utility:new" name="new" onclick="{!c.CreateNewOrder}" />
+            </div>
+        </div>
+        <div class="slds-page-header__row slds-page-header__row_gutters">
+            <div class="slds-page-header__col-details">
+                <div class="slds-page-header__detail-row">
+                    <div class="slds-page-header__control slds-p-around_xx-small" style="width:100%;">
+                        <div class="slds-grid slds-gutters">
+                            <div class="slds-col slds-size_1-of-3">
+                                <c:EBizCharge_CustomLookupRecurring objectAPIName="account" IconName="standard:account" selectedRecord="{!v.selectedLookUpRecord}" label="* Select an Account / Contact" tabName="ProcessPayment" />
+                            </div>
+                            <aura:renderIf isTrue="{!v.Settings.Ebiz_C__Tax_Calculate_By__c == 'Manual' ? true : false}">
+                                <div class="slds-col slds-size_9-of-9">
+                                    <lightning:input type="number" name="tax" label="{!v.TaxTitle}" disabled="{!v.Settings.Ebiz_C__Tax_Calculate_By__c == 'Manual' ? false : true}" formatter="{!v.Settings.Ebiz_C__Tax_Manual_Type__c == 'Use Percent' ? 'percent-fixed' : 'currency'}" step="0.01"
+                                        value="{!v.Tax}" aura:id="Tax" />
+                                </div>
+                                <div class="slds-col slds-size_2-of-4 slds-p-vertical_medium">
+                                    <div class="slds-text-heading_medium slds-text-align_right"> Total:
+                                        <lightning:formattedNumber value="{!v.OrderTotal}" style="currency" currencyCode="{!v.Settings.Ebiz_C__Currency__c}" maximumFractionDigits="2" />
+                                    </div>
+                                </div>
+                                <aura:set attribute="else">
+                                    <div class="slds-col slds-size_2-of-3 slds-p-vertical_medium">
+                                        <div class="slds-text-heading_medium slds-text-align_right"> Total:
+                                            <lightning:formattedNumber value="{!v.OrderTotal}" style="currency" currencyCode="{!v.Settings.Ebiz_C__Currency__c}" maximumFractionDigits="2" />
+                                        </div>
+                                    </div>
+                                </aura:set>
+                            </aura:renderIf>
+                        </div>
+                        <div class="slds-m-vertical_large" style="height: 300px;">
+                            <div class="slds-size_3-of-4" role="listitem">
+                                <div class="slds-form-element slds-form-element_stacked" style="padding-top: 4px;">
+                                    <h1>Orders selected to process
+                                        <lightning:badge label="{!v.NoOfPayRequests}" iconName="utility:success" />
+                                    </h1>
+                                </div>
+                            </div>
+                            <div style="height:300px; overflow-y: auto; overflow-x: hidden;">
+                                <table aria-multiselectable="true" class="slds-table slds-table_cell-buffer slds-table_striped slds-table_bordered slds-border_left slds-border_right" role="grid">
+                                    <thead>
+                                        <tr class="slds-text-title--caps">
+                                            <th class="slds-text-align_center">
+                                                <label class="slds-checkbox">
+                                                    <ui:inputCheckbox value="{!v.isSelectAll}" change="{!c.SelectAllOrders}" aura:id="selectAll" />
+                                                    <span class="slds-checkbox--faux" />
+                                                    <span class="slds-form-element__label"></span>
+                                                </label>
+                                            </th>
+                                            <th scope="col">
+                                                <div class="slds-truncate" title="Order Number" onclick="{!c.sortByOrderNumber}">
+                                                    Order #
+                                                    <span>
+                                                        <aura:if isTrue="{!v.sortAsc}">
+                                                            <lightning:icon iconName="utility:arrowup" size="xx-small" alternativeText="&#8593;" />
+                                                            <aura:set attribute="else">
+                                                                <lightning:icon iconName="utility:arrowdown" size="xx-small" alternativeText="&#8595;" />
+                                                            </aura:set>
+                                                        </aura:if>
+                                                    </span>
+                                                </div>
+                                            </th>
+                                            <th scope="col">
+                                                <div class="slds-truncate" title="Account Name" onclick="{!c.sortByAccountName}">
+                                                    Account Name
+                                                    <span>
+                                                        <aura:if isTrue="{!v.sortAsc}">
+                                                            <lightning:icon iconName="utility:arrowup" size="xx-small" alternativeText="&#8593;" />
+                                                            <aura:set attribute="else">
+                                                                <lightning:icon iconName="utility:arrowdown" size="xx-small" alternativeText="&#8595;" />
+                                                            </aura:set>
+                                                        </aura:if>
+                                                    </span>
+                                                </div>
+                                            </th>
+                                            <th scope="col">
+                                                <div class="slds-truncate" title="Account Email" onclick="{!c.sortByEmail}">
+                                                    Email
+                                                    <span>
+                                                        <aura:if isTrue="{!v.sortAsc}">
+                                                            <lightning:icon iconName="utility:arrowup" size="xx-small" alternativeText="&#8593;" />
+                                                            <aura:set attribute="else">
+                                                                <lightning:icon iconName="utility:arrowdown" size="xx-small" alternativeText="&#8595;" />
+                                                            </aura:set>
+                                                        </aura:if>
+                                                    </span>
+                                                </div>
+                                            </th>
+                                            <th scope="col">
+                                                <div class="slds-truncate" title="Order Date" onclick="{!c.sortByOrderDate}">
+                                                    Order Date
+                                                    <span>
+                                                        <aura:if isTrue="{!v.sortAsc}">
+                                                            <lightning:icon iconName="utility:arrowup" size="xx-small" alternativeText="&#8593;" />
+                                                            <aura:set attribute="else">
+                                                                <lightning:icon iconName="utility:arrowdown" size="xx-small" alternativeText="&#8595;" />
+                                                            </aura:set>
+                                                        </aura:if>
+                                                    </span>
+                                                </div>
+                                            </th>
+
+                                            <th scope="col">
+                                                <div class="slds-truncate" title="Order Amount" onclick="{!c.sortByOrderAmount}">
+                                                    Order Amount
+                                                    <span>
+                                                        <aura:if isTrue="{!v.sortAsc}">
+                                                            <lightning:icon iconName="utility:arrowup" size="xx-small" alternativeText="&#8593;" />
+                                                            <aura:set attribute="else">
+                                                                <lightning:icon iconName="utility:arrowdown" size="xx-small" alternativeText="&#8595;" />
+                                                            </aura:set>
+                                                        </aura:if>
+                                                    </span>
+                                                </div>
+                                            </th>
+
+                                            <th scope="col">
+                                                <div class="slds-truncate" title="Order Balance" onclick="{!c.sortByOrderBalance}">
+                                                    Order Balance
+                                                    <span>
+                                                        <aura:if isTrue="{!v.sortAsc}">
+                                                            <lightning:icon iconName="utility:arrowup" size="xx-small" alternativeText="&#8593;" />
+                                                            <aura:set attribute="else">
+                                                                <lightning:icon iconName="utility:arrowdown" size="xx-small" alternativeText="&#8595;" />
+                                                            </aura:set>
+                                                        </aura:if>
+                                                    </span>
+                                                </div>
+                                            </th>
+
+                                            <th scope="col">
+                                                <div class="slds-truncate" title="Payment Amount">
+                                                    Payment Amount
+                                                </div>
+                                            </th>
+
+                                        </tr>
+                                    </thead>
+
+                                    <tbody>
+                                        <aura:if isTrue="{!v.originalorderList.length &gt; 0}">
+                                            <aura:iteration items="{!v.originalorderList}" var="o">
+                                                <tr class="slds-hint-parent">
+                                                    <td class="slds-text-align_center" role="gridcell">
+                                                        <label class="slds-checkbox">
+                                                            <ui:inputCheckbox aura:id="checkOrder" value="{!o.isSelected}" text="{!o.OrderNumber}" change="{!c.SelectSingleOrder}" />
+                                                            <span class="slds-checkbox--faux" />
+                                                            <span class="slds-form-element__label"></span>
+                                                        </label>
+                                                    </td>
+
+                                                    <td data-label="Order Number">
+                                                        <div class="slds-truncate">
+                                                            <a href="{!'/one/one.app?#/sObject/'+ o.Id + '/view'}" target="_blank">{!o.OrderNumber}</a>
+                                                        </div>
+                                                    </td>
+
+                                                    <td data-label="Account Name">
+                                                        <div class="slds-truncate">
+                                                            <a href="{!'/one/one.app?#/sObject/'+ o.accId + '/view'}" target="_blank">{!o.accName}</a>
+                                                        </div>
+                                                    </td>
+
+                                                    <td data-label="Account Email">
+                                                        <div class="slds-truncate">{!o.accEmail}</div>
+                                                    </td>
+
+                                                    <td data-label="Order Date">
+                                                        <div class="slds-truncate">
+                                                            <lightning:formattedDateTime value="{!o.CreatedDate}" year="numeric" month="numeric" day="numeric" />
+                                                        </div>
+                                                    </td>
+
+                                                    <td data-label="Order Amount">
+                                                        <div class="slds-truncate">
+                                                            <lightning:formattedNumber value="{!o.TotalAmount}" style="currency" currencyCode="{!v.Settings.Ebiz_C__Currency__c}" maximumFractionDigits="2" />
+                                                        </div>
+                                                    </td>
+                                                    <td data-label="Amount Due">
+                                                        <div class="slds-truncate">
+                                                            <lightning:formattedNumber value="{!o.OrderBalance}" style="currency" currencyCode="{!v.Settings.Ebiz_C__Currency__c}" maximumFractionDigits="2" />
+                                                        </div>
+
+                                                    </td>
+
+                                                    <c:inlineEditCol singleRec="{!o}" editCol="Amount" CompName="pp" parentComp="{!this}" />
+
+                                                </tr>
+                                            </aura:iteration>
+
+                                            <aura:set attribute="else">
+                                                <tr>
+                                                    <td colspan='8' style="text-align: center;">
+                                                        <i>No Order Available to View</i>
+                                                    </td>
+                                                </tr>
+                                            </aura:set>
+                                        </aura:if>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="slds-grid slds-m-top_medium">
+
+        <div class="slds-col slds-m-right_small slds-size_2-of-3" style="width:75%;">
+            <div class="slds-card" style="height:458px;">
+                <div class="slds-p-around_medium">
+                    <div class="slds-text-title_bold">Payment Methods</div>
+
+                    <div class="slds-tabs-default">
+                        <lightning:tabset>
+                            <lightning:tab label="Pay by Card" id="PayByCard" onactive="{! c.handleParentActiveTab }">
+                                <c:EBizCharge_PayByCard aura:id="UsePayByCard" disabledPayBy="{!v.disabledPayBy}" saveCardsList="{!v.saveCardsList}" saveCardsExtendedList="{!v.saveCardsExtendedList}" selectedLookUpRecord="{!v.selectedLookUpRecord}" placeholderSC="{!v.placeholderSC}"
+                                    disableSubmitBtn="{!v.disableSubmitBtn}" disableScheduleRR="{!v.disableScheduleRR}" card4Degit="{!v.card4Degit}" parentComp="{!this}" Settings="{!v.Settings}" OS="{!v.OS}" />
+                            </lightning:tab>
+
+                            <lightning:tab label="Pay by Bank Account" id="PayByACH" onactive="{! c.handleParentActiveTab }">
+                                <c:EBizCharge_PayByACH aura:id="UsePayByACH" disabledPayBy="{!v.disabledPayBy}" disableScheduleRR="{!v.disableScheduleRR}" disableSubmitBtn="{!v.disableSubmitBtn}" saveACHList="{!v.saveACHList}" placeholderSA="{!v.placeholderSA}" card4Degit="{!v.card4Degit}"
+                                    parentComp="{!this}" Settings="{!v.Settings}" OS="{!v.OS}" />
+                            </lightning:tab>
+                        </lightning:tabset>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="slds-col">
+            <div class="slds-card" style="height:458px;">
+                <div class="slds-p-around_medium">
+                    <div class="slds-text-title_bold slds-m-bottom_large">Payment Summary</div>
+                    <div class="demo-only slds-p-around_xx-small">
+                        <article class="slds-tile">
+                            <div class="slds-tile__detail">
+                                <dl class="slds-list_horizontal slds-wrap">
+                                    <dt class="slds-item_label">Account Name:</dt>
+                                    <dd class="slds-item_detail">{!v.OS.accName}</dd>
+                                    <dt class="slds-item_label">First &amp; Last Name:</dt>
+                                    <dd class="slds-item_detail">{!v.OS.accName}</dd>
+                                    <dt class="slds-item_label"># of Orders:</dt>
+                                    <dd class="slds-item_detail">{!v.OS.NoOfOrders}</dd>
+                                    <dt class="slds-item_label">Card &amp; Last 4 Digits:</dt>
+                                    <dd class="slds-item_detail">{!v.card4Degit}</dd>
+                                </dl>
+                                <hr />
+                                <dl class="slds-list_horizontal slds-wrap">
+                                    <dt class="slds-item_label">Payment Amount:</dt>
+                                    <dd class="slds-item_detail">
+                                        <lightning:formattedNumber value="{!v.OS.OrderTotal}" style="currency" currencyCode="{!v.Settings.Ebiz_C__Currency__c}" maximumFractionDigits="2" />
+                                    </dd>
+                                    <aura:renderIf isTrue="{!v.Settings.Ebiz_C__Show_Tax_Field__c}">
+                                        <dt class="slds-item_label">
+                                            Tax amount:
+                                        </dt>
+                                        <dd class="slds-item_detail">
+                                            <lightning:formattedNumber value="{!v.OS.OrderTax}" style="currency" currencyCode="{!v.Settings.Ebiz_C__Currency__c}" maximumFractionDigits="2" />
+                                        </dd>
+                                    </aura:renderIf>
+                                </dl>
+                            </div>
+                            <div class="slds-text-title_bold slds-text-align_right slds-custom">
+                                Total:
+                                <lightning:formattedNumber value="{!v.paymentTotal}" style="currency" currencyCode="{!v.Settings.Ebiz_C__Currency__c}" maximumFractionDigits="2" />
+                            </div>
+                        </article>
+                    </div>
+                    <lightning:button variant="brand" class="slds-cstbtn" label="Process Payment" title="Process Payment" disabled="{!v.disableSubmitBtn}" onclick="{!c.processPayment}" />
+                </div>
+            </div>
+        </div>
+    </div>
+    <c:EBizCharge_Order isOpen="{!v.showOrdModal}" Settings="{!v.Settings}" />
+</aura:component>

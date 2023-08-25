@@ -1,0 +1,15 @@
+.THIS.Position{
+    margin-left: 30px;
+    margin-top: 25px;
+}
+.THIS .backColor{
+    background-color:red;
+    color: #ffffff;
+}
+/* .THIS .slds-dropdown-trigger.slds-is-open .slds-listbox__option{
+    color: rgb(0, 0, 163);
+    font-size:medium;
+} */
+.THIS .myColor svg{
+    fill:blue;
+}

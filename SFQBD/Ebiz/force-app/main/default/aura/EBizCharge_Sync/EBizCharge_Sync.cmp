@@ -1,0 +1,113 @@
+<aura:component controller="eBc_SyncController" implements="flexipage:availableForAllPageTypes" access="global">
+    <ltng:require styles="{!$Resource.NoHeader}" />
+    <aura:attribute name="Spinner" type="boolean" default="false" />
+    <aura:attribute name="disableUplTab" type="boolean" default="false" />
+    <aura:attribute name="disableDnldTab" type="boolean" default="false" />
+    <aura:attribute name="ActiveTab" type="string" default="Upload" />
+    <aura:attribute name="DivisionID" type="string" default="" />
+    <aura:attribute name="CS" type="EBizcharge_Setting__c" default="{'sobjectType': 'EBizcharge_Setting__c'}" />
+
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+
+    <!--loading spinner-->
+    <aura:if isTrue="{!v.Spinner}">
+        <div aura:id="spinnerId" class="slds-spinner_container" style="position: fixed;">
+            <lightning:spinner aura:id="Spinner" alternativeText="Loading" size="medium" variant="brand" />
+        </div>
+    </aura:if>
+    <!-- =========== -->
+
+    <!--Main Page Content Area-->
+    <div class="container slds-page-header slds-page-header_record-home">
+        <!--Custom Page Header-->
+        <div class="slds-page-header__row">
+            <div class="slds-page-header__col-title">
+                <div class="slds-media">
+                    <div class="slds-media__figure">
+                        <span class="slds-icon_container slds-icon-standard-recent">
+                            <lightning:icon iconName="standard:recent" alternativeText="Sync" />
+                        </span>
+                    </div>
+                    <div class="slds-media__body">
+                        <div class="slds-page-header__name">
+                            <div class="slds-page-header__name-title">
+                                <h1>
+                                    <span>Sync</span>
+                                    <span class="slds-page-header__title slds-truncate">{!v.ActiveTab}</span>
+                                </h1>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- =========== -->
+        <!--Custom Page Content-->
+        <div class="slds-page-header__row slds-page-header__row_gutters">
+            <div class="slds-page-header__col-details">
+                <div class="slds-page-header__detail-row">
+                    <!--Main Tabs Block-->
+                    <lightning:tabset selectedTabId="{!v.ActiveTab}">
+                        <aura:renderIf isTrue="{!v.disableUplTab == false}">
+                            <lightning:tab label="Upload" id="Upload" onactive="{! c.handleActiveTab }">
+                                <lightning:tabset variant="scoped" selectedTabId="uploadorders">
+                                    <lightning:tab label="Orders" id="uploadorders">
+                                        <c:EBizCharge_SyncUploadOrders aura:id="UploadOrders" parentComp="{!this}" />
+                                    </lightning:tab>
+                                    <lightning:tab label="Accounts" id="uploadaccounts">
+                                        <c:EBizCharge_SyncUploadAccounts aura:id="UploadAccounts"
+                                            parentComp="{!this}" />
+                                    </lightning:tab>
+                                    <lightning:tab label="Contacts" id="uploadContacts">
+                                        <c:EBizCharge_SyncUploadContacts aura:id="UploadAccounts"
+                                            parentComp="{!this}" />
+                                    </lightning:tab>
+                                    <!-- Epicor tab start-->
+                                    <!-- <lightning:tab label="Products" id="uploadproducts">
+                                    <c:EBizCharge_SyncUploadProducts
+                                                                  aura:id="UploadProducts"
+                                                                  parentComp="{!this}"
+                                                                  DivisionID="{!v.DivisionID}"
+                                                                  />
+                                </lightning:tab> -->
+                                    <!-- Epicor tab end-->
+                                </lightning:tabset>
+                            </lightning:tab>
+                        </aura:renderIf>
+                        <aura:renderIf isTrue="{!v.disableDnldTab == false}">
+                            <lightning:tab label="Download" id="Download" onactive="{! c.handleActiveTab }">
+
+                                <lightning:tabset variant="scoped" selectedTabId="downloadreceivedpayments">
+                                    <!-- Epicor tab start-->
+                                    <!-- <lightning:tab label="Orders" id="downloadorders">
+                                        <c:EBizCharge_SyncdownloadOrders aura:id="downloadOrders"
+                                            parentComp="{!this}" />
+                                    </lightning:tab>
+
+                                    <lightning:tab label="Accounts" id="downloadaccounts">
+                                        <c:EBizCharge_SyncdownloadAccounts aura:id="downloadAccounts"
+                                            parentComp="{!this}" CS="{!v.CS}" />
+                                    </lightning:tab> -->
+                                    <!-- Epicor tab end-->
+
+                                    <lightning:tab label="Received Payments" id="downloadreceivedpayments">
+                                        <c:EBizCharge_SyncdownloadReceivedPay aura:id="downloadReceivedPay"
+                                            parentComp="{!this}" />
+                                    </lightning:tab>
+                                    <!-- Epicor tab start-->
+                                    <!-- <lightning:tab label="Products" id="downloadproducts">
+                                        <c:EBizCharge_SyncdownloadProducts aura:id="downloadProducts"
+                                            parentComp="{!this}" />
+                                    </lightning:tab> -->
+                                    <!-- Epicor tab end-->
+                                </lightning:tabset>
+                            </lightning:tab>
+                        </aura:renderIf>
+                    </lightning:tabset>
+                    <!--==============-->
+                </div>
+            </div>
+        </div>
+        <!-- =========== -->
+    </div>
+</aura:component>

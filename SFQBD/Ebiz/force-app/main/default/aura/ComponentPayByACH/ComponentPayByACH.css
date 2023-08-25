@@ -1,0 +1,10 @@
+.THIS .slds-cst-cbx_right {
+    display: inline-block;
+    float: left;
+    margin-right: 15px;
+}
+
+.THIS .slds-dropdown-trigger .slds-dropdown {
+    height: 60px !important;
+    overflow: auto;
+}

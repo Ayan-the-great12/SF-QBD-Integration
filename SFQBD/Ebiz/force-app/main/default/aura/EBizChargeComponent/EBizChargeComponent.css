@@ -1,0 +1,97 @@
+.THIS .cstbtn {
+    font-size: 11px !important;
+    min-width: 202px !important;
+    justify-content: left !important;
+}
+
+.THIS .CenteredAlignClass {
+    text-align: center;
+}
+
+.THIS .slds-accordion__summary {
+    padding: 0 var(--lwc-spacingXSmall, 0.5rem);
+    border: var(--lwc-borderWidthThin, 1px) solid transparent;
+    border-radius: var(--lwc-borderRadiusMedium, 0.25rem);
+    background: var(--lwc-colorBackground, rgb(243, 242, 242));
+    height: 2rem;
+    font-weight: bold;
+}
+
+.THIS .FieldMapper {
+    background-image: linear-gradient(to right, #2d4bce, #44baf4);
+    color: white;
+}
+
+.THIS .slds-selectsCom {
+    margin-bottom: 19px;
+}
+
+.THIS .content {
+    border-bottom-left-radius: 1rem;
+    border-bottom-right-radius: 1rem;
+    display: grid;
+}
+
+.THIS .total {
+    align-self: start;
+    justify-self: center;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-family: "Open Sans", sans-serif;
+    letter-spacing: 1px;
+}
+
+.THIS .total .balance {
+    background: #1f3a4a;
+    padding: 0.5rem 1rem;
+    border-radius: 5px;
+    color: #02ca8c;
+}
+
+.THIS .total .label {
+    color: #828393;
+}
+
+.THIS .total .value {
+    font-size: 1.8rem;
+}
+
+.THIS .slds-resizable__handle {
+    will-change: unset !important;
+}
+.THIS .slds-wrap{
+    margin-right:10px;
+     margin-top:7px;
+}
+
+.THIS .visa {
+    background-image: url("/resource/Ebiz_C__visaImage");
+    background-repeat: no-repeat, repeat;
+    
+}
+
+.THIS .master {
+    background-image: url("/resource/Ebiz_C__MasterCardImage");
+    background-repeat: no-repeat, repeat;
+    
+}
+
+.THIS .american {
+    background-image: url("/resource/Ebiz_C__AmericanExpressImage");
+    background-repeat: no-repeat, repeat;
+    
+}
+
+.THIS .discover {
+    background-image: url("/resource/Ebiz_C__DiscoverImage");
+    background-repeat: no-repeat, repeat;
+    
+}
+
+.THIS .ach {
+    background-image: url("/resource/Ebiz_C__CheckHomeImage");
+    background-repeat: no-repeat, repeat;
+    
+}

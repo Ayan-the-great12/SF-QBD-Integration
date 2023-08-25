@@ -1,0 +1,5 @@
+<aura:component controller="eBc_SettingController"
+                implements="force:appHostable,flexipage:availableForAllPageTypes" access="global" >
+
+
+</aura:component>

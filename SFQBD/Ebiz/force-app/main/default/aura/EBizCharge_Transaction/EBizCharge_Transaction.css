@@ -1,0 +1,54 @@
+.THIS .slds-icon-standard-today {
+    background-color: #31b9f8 !important;
+}
+
+.THIS .slds-icon-action-approval {
+    background-color: #31b9f8 !important;
+}
+
+.THIS.icn svg {
+    fill: #31b9f8 !important;
+}
+
+.THIS .slds-form-element__icon {
+    padding-top: 0px !important;
+}
+
+.THIS .helperTEXT {
+    margin-top: -12px;
+    position: relative;
+    left: 0px;
+    top: -14px;
+    transition: none 0s ease 0s;
+    cursor: move;
+}
+
+.THIS .visa {
+    background-image: url("/resource/Ebiz_C__visaImage");
+    background-repeat: no-repeat, repeat;
+    
+}
+
+.THIS .master {
+    background-image: url("/resource/Ebiz_C__MasterCardImage");
+    background-repeat: no-repeat, repeat;
+    
+}
+
+.THIS .american {
+    background-image: url("/resource/Ebiz_C__AmericanExpressImage");
+    background-repeat: no-repeat, repeat;
+    
+}
+
+.THIS .discover {
+    background-image: url("/resource/Ebiz_C__DiscoverImage");
+    background-repeat: no-repeat, repeat;
+    
+}
+
+.THIS .ach {
+    background-image: url("/resource/Ebiz_C__CheckHomeImage");
+    background-repeat: no-repeat, repeat;
+    
+}

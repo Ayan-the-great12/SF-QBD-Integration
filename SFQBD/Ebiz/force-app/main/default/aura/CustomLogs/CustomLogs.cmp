@@ -1,0 +1,57 @@
+<aura:component controller="eBc_SettingController" implements="flexipage:availableForAllPageTypes" access="global">
+
+    <aura:attribute name="Settings" type="EBizcharge_Setting__c" default="{'sobjectType': 'EBizcharge_Setting__c'}" />
+    <aura:attribute name="Spinner" type="boolean" default="false" />
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+    <aura:attribute name="ShowLookup" type="boolean" default="true" />
+    <aura:attribute name="parentComp" type="Aura.Component" required="true" access="global"/>
+
+    <div class="slds-col slds-size_1-of-1 slds-m-bottom_small">
+        <lightning:card>
+            <div class="slds-grid">
+                <div class="slds-col slds-medium-order_1 slds-size_5-of-5">
+                    <div class="slds-p-horizontal_medium ">
+                        <div class="slds-page-header">
+                            <div class="slds-page-header__row">
+                                <div class="slds-page-header__col-title">
+                                    Custom Logs
+                                </div>
+                            </div>
+                        </div>
+                        <div class="slds-form slds-m-around_medium">
+                            <div class="slds-form-element slds-form-element_horizontal slds-size_1-of-2 slds-cst_padding">
+                                <lightning:input type="checkbox" checked="{!v.Settings.Ebiz_C__EBizCharge_IsLogEnable__c}" label="Enable Log" aura:id="logscheckbox" onchange="{!c.CheckAllLogs}" />
+                            </div>
+                            <aura:renderIf isTrue="{!v.Settings.Ebiz_C__EBizCharge_IsLogEnable__c == true}">
+                                <div class="slds-form slds-m-around_medium">
+                                    <label class="slds-form-element__label"><i>Log level</i></label>
+                                    <div class="slds-form-element slds-form-element_horizontal slds-size_1-of-2 slds-cst_padding">
+                                        <lightning:input type="checkbox" checked="{!v.Settings.Ebiz_C__EBizcharge_IsLogErrorEnable__c}" label="ERROR" />
+                                    </div>
+                                    <div class="slds-form-element slds-form-element_horizontal slds-size_1-of-2 slds-cst_padding">
+                                        <lightning:input type="checkbox" checked="{!v.Settings.Ebiz_C__EBizcharge_IsLogInfoEnable__c}" label="INFO" />
+                                    </div>
+                                    <div class="slds-form-element slds-form-element_horizontal slds-size_1-of-2 slds-cst_padding">
+                                        <lightning:input type="checkbox" checked="{!v.Settings.Ebiz_C__EBizcharge_IsLogWarningEnable__c}" label="WARNING" />
+                                    </div>
+                                    <div class="slds-form-element slds-form-element_horizontal slds-size_1-of-2 slds-cst_padding">
+                                        <lightning:input type="checkbox" checked="{!v.Settings.Ebiz_C__EBizcharge_IsLogExceptionEnable__c}" label="EXCEPTION" />
+                                    </div>
+                                </div>
+                                <div>
+                                </div>
+                            </aura:renderIf>
+                        </div>
+                        <aura:renderIf isTrue="{!v.Settings.Ebiz_C__EBizCharge_IsLogEnable__c == true}">
+                            <lightning:button label="View Log Tab" variant="brand" onclick="{! c.openLogTab }" />
+                        </aura:renderIf>
+                    </div>
+                </div>
+            </div>
+            <div class="slds-m-vertical_small slds-align_absolute-center">
+                <lightning:button label="Save" variant="brand" iconName="utility:save" onclick="{! c.saveSettingsLogin }" />
+            </div>
+        </lightning:card>
+    </div>
+
+</aura:component>

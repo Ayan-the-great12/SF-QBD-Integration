@@ -1,0 +1,23 @@
+.THIS .slds-align-middle {
+    padding-top: 16px !important;
+}
+
+.THIS .slds-form-element_compound .slds-form-element {
+    padding-left: 2px !important;
+}
+
+.THIS .slds-size_1-of-3 {
+    width: 34.333333% !important;
+}
+
+.THIS .slds-list_horizontal .slds-item_detail {
+    width: 200px !important;
+}
+
+.THIS .slds-list_horizontal .slds-item_label {
+    width: 190px !important;
+}
+
+.THIS hr {
+    margin: 1.2rem !important;
+}

@@ -1,0 +1,323 @@
+<aura:component controller="EBC_ComponentController" implements="flexipage:availableForAllPageTypes,force:lightningQuickAction,force:hasSObjectName,force:hasRecordId" access="global">
+
+    <aura:attribute name="sortDirection" type="String" />
+    <aura:attribute name="sortBy" type="String" />
+    <aura:attribute name="loadMoreOffset" type="Integer" default="2" />
+    <aura:attribute name="tcount" type="Integer" default="0" />
+    <aura:attribute name="previousTransactionCount" type="Integer" default="0" />
+    <aura:attribute name="Spinner" type="boolean" default="false" />
+    <aura:attribute name="sObjectName" type="String" />
+    <aura:attribute name="recordId" type="String" />
+    <aura:attribute name="isDisable" type="Boolean" default="true" />
+    <aura:attribute name="isCustomObject" type="Boolean" default="false" />
+    <aura:attribute name="CS" type="Object" />
+    <aura:attribute name="ComponentLabel" type="String" default="EBizCharge" />
+    <aura:attribute name="VerifyAccount" type="String" default="null" />
+    <aura:attribute name="record" type="Object" />
+    <aura:attribute name="obj" type="Object" />
+    <aura:attribute name="recordError" type="String" />
+    <aura:attribute name="ShowObjConfigModel" type="boolean" default="false" />
+    <aura:attribute name="showModalPayMethods" type="boolean" default="false" />
+    <aura:attribute name="showPopUp" type="boolean" default="false" />
+    <aura:attribute name="clickedButton" type="string" default="" />
+    <aura:attribute name="AccountName" type="string" default="" />
+    <aura:attribute name="ContactName" type="string" default="" />
+    <aura:attribute name="custom__EBizCharge_Reference_Number__c" type="string" default="" />
+    <aura:attribute name="ObjectConfig" type="EBiz_Object_Config__c" />
+    <aura:attribute name="accountDetail" type="Account" />
+    <aura:attribute name="contactDetail" type="Contact" />
+    <aura:attribute name="CustomObjectDetail" type="EBizCharge_Fields_Config__c" />
+    <aura:attribute name="savedCard" type="List" />
+    <aura:attribute name="savedACH" type="List" />
+    <aura:attribute name="savedCardList" type="List" />
+    <aura:attribute name="savedACHList" type="List" />
+    <aura:attribute name="TransInfo" type="Object" />
+    <aura:attribute name="TransList" type="List" default="[]" />
+    <aura:attribute name="DataColumns" type="List" />
+    <aura:attribute name="PendingList" type="List" default="[]" />
+    <aura:attribute name="PendingListColumns" type="List" />
+    <aura:attribute name="recPaymentList" type="List" default="[]" />
+    <aura:attribute name="RecPaymentColumns" type="List" />
+    <aura:attribute name="loadMoreOffsetPay" type="Integer" default="20" />
+    <aura:attribute name="sortDirectionOfPay" type="String" />
+    <aura:attribute name="sortByPayment" type="String" />
+    <aura:attribute type="Boolean" name="disableButtonApply" default="true" />
+    <aura:attribute name="RecordsSelected" type="Object" />
+    <aura:attribute name="countSelectedRows" type="Integer" default="0" />
+    <aura:attribute name="MaxRecords" type="Integer" default="100" />
+    <aura:attribute name="isActive" type="boolean" default="false" />
+    <aura:attribute name="AmuontFieldsList" type="List" default="[]" />
+    <aura:attribute name="EmailFieldsList" type="List" default="[]" />
+    <aura:attribute name="NameFieldsList" type="List" default="[]" />
+    <aura:attribute name="OrderTotal" type="double" default="0.0" />
+    <aura:attribute name="fromDate" type="date" default="" />
+    <aura:attribute name="toDate" type="date" default="" />
+    <aura:attribute name="QbdCustomerId" type="String" />
+    <aura:attribute name="isAccountObject" type="boolean" default="false" />
+    <aura:attribute name="options" type="List" default="[
+    {'label': 'Not mapped', 'value': 'not'},
+    {'label': 'In Progress', 'value': 'inProgress'},
+    {'label': 'Finished', 'value': 'finished'},
+    ]"/>
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    <aura:handler event="force:refreshView" action="{!c.forceHandler}" />
+    <!--loading spinner start -->
+    <aura:if isTrue="{!v.Spinner}">
+        <div aura:id="spinnerId" class="slds-spinner_container" style="position: fixed;">
+            <lightning:spinner aura:id="Spinner" alternativeText="Loading" size="medium" variant="brand" />
+        </div>
+    </aura:if>
+    <!-- Loading spinner end-->
+
+    <force:recordData aura:id="orderrecord" layoutType="FULL" recordId="{!v.recordId}" targetError="{!v.recordError}" targetRecord="{!v.record}" targetFields="{!v.obj}" recordUpdated="{!c.forceHandler}" mode="VIEW" />
+
+    <lightning:card>
+        <aura:set attribute="title">
+            <span class="slds-avatar slds-avatar_x-small" style="width:30px; height:30px">
+                <img src="{!$Resource.EBizChargeLogo}" />
+            </span>
+
+            <aura:if isTrue="{!v.isCustomObject}">
+                <span class="slds-text-title_bold slds-p-left_small" style='font-size: inherit;'>
+                    <lightning:formattedUrl value="/lightning/n/Ebiz_C__Accounts" label="{!v.ComponentLabel}" tooltip="Go to EBizCharge Application" target="_blank" />
+                    <aura:if isTrue="{!v.CustomObjectDetail.Ebiz_C__EBizCharge_Internal_ID__c}">
+                        <lightning:icon iconName="utility:connected_apps" size="xx-small" alternativeText="Connected" title="Connecte" /> syncd
+                    </aura:if>
+                </span>
+                <aura:set attribute="else">
+                    <span class="slds-text-title_bold slds-p-left_small" style='font-size: inherit;'>
+                        <lightning:formattedUrl value="/lightning/n/Ebiz_C__Accounts" label="{!v.ComponentLabel}" tooltip="Go to EBizCharge Application" target="_blank" />
+                    </span>
+                </aura:set>
+
+            </aura:if>
+        </aura:set>
+        <aura:set attribute="actions">
+            <lightning:buttonIcon iconName="utility:refresh" title="Component Refresh" variant="bare" alternativeText="Refresh" iconClass="dark" onclick="{!c.Refresher}" />
+            <lightning:buttonIcon iconName="utility:settings" title="Component Settings" variant="bare" alternativeText="Settings" iconClass="dark" value="CompConfiguration" disabled="{!v.isDisable}" onclick="{!c.SetCmpConfiguration}" />
+        </aura:set>
+
+        <aura:if isTrue="{!v.isCustomObject}">
+        </aura:if>
+        <div class="slds-grid slds-m-bottom_large">
+            <div class="slds-align_absolute-center">
+                <div class="slds-col">
+                    <aura:renderIf isTrue="{! and(or(v.sObjectName == 'Order',v.sObjectName == 'Quote'),v.obj.Ebiz_C__EBizCharge_Payment_Status__c == 'Preauth')}">
+                        <lightning:button label="Capture Payment" class="cstbtn slds-button_stretch" variant="brand" iconName="utility:moneybag" value="CapturePayment" disabled="{!or(v.isDisable, 
+                                            and(
+                                                and(
+                                                or(v.sObjectName == 'Order',v.sObjectName == 'Quote'),
+                                                or(v.obj.Ebiz_C__EBizCharge_Order_Status__c == 'Paid',v.obj.Ebiz_C__EBizCharge_Quote_Status__c == 'Paid')
+                                                ),
+                                                or(v.obj.Ebiz_C__EBizCharge_Order_Balance__c == 0,v.obj.Ebiz_C__EBizCharge_Quote_Balance__c == 0)
+                                                )
+                                            )}" onclick="{!c.ClickHandler}" />
+                        <aura:set attribute="else">
+                            <lightning:button label="Process Payment" class="cstbtn slds-button_stretch" variant="brand" iconName="utility:moneybag" value="ProcessPayment" disabled="{!or(!v.CS.Ebiz_C__EBizcharge_Process_Payment__c,or(v.isDisable, 
+                                                and(
+                                                    and(
+                                                    or(v.sObjectName == 'Order',v.sObjectName == 'Quote'),
+                                                    or(v.obj.Ebiz_C__EBizCharge_Order_Status__c == 'Paid',v.obj.Ebiz_C__EBizCharge_Quote_Status__c == 'Paid')
+                                                    ),
+                                                    or(v.obj.Ebiz_C__EBizCharge_Order_Balance__c == 0,v.obj.Ebiz_C__EBizCharge_Quote_Balance__c == 0)
+                                                    )
+                                                ))}" onclick="{!c.ClickHandler}" />
+                        </aura:set>
+                    </aura:renderIf>
+                </div>
+                <div class="slds-col slds-m-left_small">
+                    <lightning:button label="Send Email Payment Request" class="cstbtn slds-button_stretch" variant="brand" iconName="utility:email" name="Send Email Payment Request" value="SendEmailPaymentRequest" disabled="{!or(!v.CS.Ebiz_C__EBizcharge_Send_Email_Payment_Request__c,(v.sObjectName == 'Account' ||  v.sObjectName == 'Contact' || v.isCustomObject  == true || v.obj.Ebiz_C__EBizCharge_Order_Status__c == 'Paid' || v.obj.Ebiz_C__EBizCharge_Quote_Status__c == 'Paid' ? true : false)) }"
+                        onclick="{!c.ClickHandler}" />
+                </div>
+            </div>
+        </div>
+
+        <div class="slds-grid slds-m-bottom_medium">
+            <div class="slds-align_absolute-center">
+                <div class="slds-col">
+                    <lightning:button label="Schedule Recurring Payment" class="cstbtn slds-button_stretch" variant="brand" iconName="utility:event" value="ScheduleRecurringPayment" disabled="{!or(!v.CS.Ebiz_C__EBizcharge_Schedule_Recurring_Payment__c,v.isDisable)}" onclick="{!c.ClickHandler}"
+                    />
+                </div>
+                <div class="slds-col slds-m-left_small">
+                    <lightning:button label="Request Payment Method" class="cstbtn slds-button_stretch" variant="brand" iconName="utility:money" value="RequestPaymentMethod" disabled="{!or(!v.CS.Ebiz_C__EBizcharge_Request_Payment_Method__c,v.isDisable)}" onclick="{!c.ClickHandler}"
+                    />
+                </div>
+            </div>
+        </div>
+        <div class="slds-align_absolute-center" style="margin-bottom: 10px;">
+            <aura:renderIf isTrue="{!or(!v.CS.Ebiz_C__EBizcharge_Manage_Payment_Method__c,v.isDisable)}">
+                <lightning:button disabled="true" variant="brand" label="Manage Payment Methods" />
+                <aura:set attribute="else">
+                    <lightning:button class=" paybtn slds-button_stretch slds-size_10-of-12" iconName="utility:inspector_panel" label="Manage Payment Methods" onclick="{! c.PaymentMethodsHandler }" />
+                </aura:set>
+
+            </aura:renderIf>
+        </div>
+        <aura:if isTrue="{!v.showModalPayMethods}">
+            <aura:renderIf isTrue="{!and(v.sObjectName == 'Contact')}">
+                <c:CompManagePaymentMethodsContact isOpen="{!v.showModalPayMethods}" conInfo="{!v.contactDetail}" savedCardList="{!v.savedCardList}" savedACHList="{!v.savedACHList}" />
+                <aura:set attribute="else">
+                    <aura:if isTrue="{!v.isCustomObject}">
+
+                        <c:CompManagePaymentMethodsCustomCustomer isOpen="{!v.showModalPayMethods}" CustomCustomerDetail="{!v.CustomObjectDetail}" savedCardList="{!v.savedCardList}" savedACHList="{!v.savedACHList}" />
+
+                        <aura:set attribute="else">
+                            <aura:if isTrue="{!v.isAccountObject}">
+                                <c:CompManagePaymentMethodsAccount recordId="{!v.recordId}" isOpen="{!v.showModalPayMethods}" objectName="{!v.sObjectName}" accInfo="{!v.accountDetail}" savedCardList="{!v.savedCardList}" savedACHList="{!v.savedACHList}" />
+                                <aura:set attribute="else">
+                                    <c:CompManagePaymentMethods isOpen="{!v.showModalPayMethods}" accInfo="{!v.accountDetail}" savedCardList="{!v.savedCardList}" savedACHList="{!v.savedACHList}" />
+                                </aura:set>
+                            </aura:if>
+                        </aura:set>
+                    </aura:if>
+                </aura:set>
+            </aura:renderIf>
+        </aura:if>
+        <!--  Object config model start  -->
+        <aura:if isTrue="{!v.ShowObjConfigModel}">
+            <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+                <div class="slds-modal__container">
+                    <header class="slds-modal__header FieldMapper">
+                        <h2 id="modal-heading-01" class="slds-modal__title slds-hyphenate ">Bouns Fields with EbizCharge Component
+                        </h2>
+                    </header>
+                    <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1">
+                        <table class="slds-table slds-table_cell-buffer slds-no-row-hover slds-table_bordered">
+                            <tbody>
+                                <tr class="slds-hint-parent">
+                                    <th data-label="Customer Name" scope="row">Customer Name</th>
+                                    <th data-label="Customer Name" scope="row">
+                                        <lightning:badge label="Text(string)" />
+                                    </th>
+                                    <th data-label="Customer Name" scope="row">
+                                        <lightning:dynamicIcon type="trend" option="right" alternativeText="link" />
+                                    </th>
+                                    <th data-label="api's" style="margin-bottom: 18px;">
+                                        <lightning:combobox name="progress" class="slds-selectsCom" value="{!v.ObjectConfig.Ebiz_C__EBizCustomerNameApi__c}" placeholder="Select Name Field" options="{! v.NameFieldsList }" onchange="{! c.handleChangeName }" />
+                                    </th>
+                                </tr>
+
+                                <tr class="slds-hint-parent">
+                                    <th data-label="Customer Name" scope="row">Customer Email</th>
+                                    <th data-label="Customer Name" scope="row">
+                                        <lightning:badge label="Email(string)" />
+                                    </th>
+                                    <th data-label="Customer Name" scope="row">
+                                        <lightning:dynamicIcon type="trend" option="right" alternativeText="link" />
+                                    </th>
+                                    <th data-label="api's">
+                                        <lightning:combobox name="progress" class="slds-selectsCom" value="{!v.ObjectConfig.Ebiz_C__EBizCustomerEmailApi__c}" placeholder="Select Email Field" options="{! v.EmailFieldsList }" onchange="{! c.handleChangeEmail }" />
+                                    </th>
+                                </tr>
+
+                                <tr class="slds-hint-parent">
+                                    <th data-label="Customer Name" scope="row">Customer Amount</th>
+                                    <th data-label="Customer Name" scope="row">
+                                        <lightning:badge label="Currency(Decimal)" />
+                                    </th>
+                                    <th data-label="Customer Name" scope="row">
+                                        <lightning:dynamicIcon type="trend" option="right" alternativeText="link" />
+                                    </th>
+                                    <th data-label="api's">
+                                        <lightning:combobox class="slds-selectsCom" dropdownAlignment="bottom-left" name="progress" value="{!v.ObjectConfig.Ebiz_C__EBizAmountApi__c}" placeholder="Select Currency Field" options="{! v.AmuontFieldsList }" onchange="{! c.handleChangeAmount }" />
+                                    </th>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <footer class="slds-modal__footer slds-modal__footer_directional">
+                        <lightning:button label="Don't show me again" iconName="utility:hide" onclick="{!c.ObjConfigModelHandle}" />
+                        <lightning:button label="Fields Map" iconName="utility:richtextoutdent" onclick="{!c.ObjConfigOnSave}" />
+                    </footer>
+                </div>
+            </section>
+            <div class="slds-backdrop slds-backdrop_open"></div>
+
+        </aura:if>
+        <aura:renderIf isTrue="{!v.TransList.length &gt; 0}">
+            <lightning:accordion allowMultipleSectionsOpen="true">
+                <div style="max-height :145px; width:100%">
+                    <lightning:accordionSection name="A" label="Previous Transactions" aura:id="previouslabel">
+                        <div class="slds-grid">
+                            <div style="max-height :100px; width:100%">
+                                <lightning:datatable aura:id="TransList" keyField="Id" hideCheckboxColumn="true" columns="{!v.DataColumns}" data="{!v.TransList}" sortedBy="{!v.sortBy}" sortedDirection="{!v.sortDirection}" loadMoreOffset="{! v.loadMoreOffset }" onsort="{!c.handleSort}"
+                                    style="zoom: 85%;" />
+                            </div>
+                        </div>
+                        <aura:renderIf isTrue="{!v.previousTransactionCount &gt; 6}">
+                            <a href="javascript:void(0)" style="text-decoration:none;" onclick="{!c.NavigationHandler}">
+                                <div class="slds-wrap" style="float: right;">View full transaction history</div>
+                            </a>
+                        </aura:renderIf>
+                    </lightning:accordionSection>
+                </div>
+            </lightning:accordion>
+        </aura:renderIf>
+        <aura:renderIf isTrue="{!v.PendingList.length &gt; 0}">
+            <lightning:accordion allowMultipleSectionsOpen="true" class="slds-m-vertical_x-small">
+                <div style="max-height :145px; width:100%">
+                    <lightning:accordionSection name="A" label="EBizCharge Pending Requests" aura:id="pendinglabel">
+                        <div class="slds-grid">
+                            <div style="max-height :100px; width:100%">
+                                <lightning:datatable aura:id="PendingList" keyField="Id" hideCheckboxColumn="true" columns="{!v.PendingListColumns}" data="{!v.PendingList}" style="zoom: 85%;" />
+                            </div>
+                        </div>
+                    </lightning:accordionSection>
+                </div>
+            </lightning:accordion>
+        </aura:renderIf>
+        <aura:renderIf isTrue="{!v.recPaymentList.length &gt; 0}">
+            <lightning:accordion allowMultipleSectionsOpen="true" class="slds-m-vertical_x-small">
+                <div style="max-height :170px; width:100%">
+                    <lightning:accordionSection name="A" label="Received payments" aura:id="receivedlabel">
+                        <div class="slds-grid">
+                            <div style="max-height :100px; width:100%">
+                                <lightning:datatable aura:id="recPaymentList" keyField="Id" hideCheckboxColumn="false" columns="{!v.RecPaymentColumns}" data="{!v.recPaymentList}" sortedBy="{!v.sortByPayment}" sortedDirection="{!v.sortDirectionOfPay}" loadMoreOffset="{! v.loadMoreOffsetPay }"
+                                    onsort="{!c.handleSorting}" onrowselection="{! c.selectedTextUpdated}" style="zoom: 85%;" />
+                            </div>
+                        </div>
+                        <br />
+                        <!-- view full payments length -->
+                        <div class="slds-grid" style="float: right;">
+                            <div class="slds-col">
+                                <aura:renderIf isTrue="{!v.tcount &gt; 6}">
+                                    <a href="javascript:void(0)" style="text-decoration:none;" onclick="{!c.NavigationHandling}">
+                                        <div class="slds-wrap" style="float: right;">View more received payments</div>
+                                    </a>
+                                </aura:renderIf>
+                            </div>
+                            <div class="slds-col">
+                                <button class="slds-button slds-button_brand" title="Apply" disabled="{!v.disableButtonApply}" onclick="{! c.applyPayments}">Apply
+                                </button>
+                            </div>
+                        </div>
+                        <br /><br />
+                    </lightning:accordionSection>
+                </div>
+            </lightning:accordion>
+        </aura:renderIf>
+        <hr />
+        <aura:renderIf isTrue="{!v.sObjectName == 'Order'}">
+            <p class="CenteredAlignClass">
+             <b>Order Amount Remaining:
+               <lightning:formattedNumber value="{!v.obj.Ebiz_C__EBizCharge_Order_Balance__c}" 
+                                          style="currency"
+                                          maximumFractionDigits="2"/>
+             </b>
+            </p>
+         </aura:renderIf>
+         <aura:renderIf isTrue="{!v.sObjectName == 'Quote'}">
+            <p class="CenteredAlignClass">
+             <b>Quote Amount Remaining:
+               <lightning:formattedNumber value="{!v.obj.Ebiz_C__EBizCharge_Quote_Balance__c}" 
+                                          style="currency"
+                                          maximumFractionDigits="2"/>
+             </b>
+            </p>
+         </aura:renderIf>
+
+        <c:ModalApplyPayments isActive="{!v.isActive}" />
+        <c:ComponentHandler isActive="{!v.showPopUp}" showCmpPopUp="{!v.clickedButton}" recordId="{!v.recordId}" ObjectName="{!v.sObjectName}" CS="{!v.CS}" savedCard="{!v.savedCard}" savedACH="{!v.savedACH}" Transaction="{!v.TransInfo}" isCustomObject="{!v.isCustomObject}"
+            ObjectConfig="{!v.ObjectConfig}" AmuontFieldsList="{!v.AmuontFieldsList}" EmailFieldsList="{!v.EmailFieldsList}" NameFieldsList="{!v.NameFieldsList}" obj="{!v.obj}" saveCardsExtendedList="{!v.savedCardList}" />
+    </lightning:card>
+</aura:component>

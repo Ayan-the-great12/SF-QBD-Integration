@@ -1,0 +1,397 @@
+<aura:component controller="eBc_SettingController"
+                implements="force:appHostable,flexipage:availableForAllPageTypes" access="global" >
+    <ltng:require styles="{!$Resource.NoHeader}"/>
+    
+    <!-- attributes -->
+    <aura:attribute name="Spinner" type="boolean" default="false"/>
+    <aura:attribute name="Settings" type="Object" />
+    <aura:attribute name="DefaultTransBy" type="List" />
+    <aura:attribute name="DefaultEmailReqSendBy" type="List" />
+    <aura:attribute name="DefaultOrdersBy" type="List" />
+    <aura:attribute name="DefaultAccountsBy" type="List" />
+    <aura:attribute name="DefaultProductsBy" type="List" />
+    <aura:attribute name="TaxAction" type="List" />
+    <aura:attribute name="TaxManualType" type="List" />
+    
+    
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    
+    <!--====================-->
+    
+    
+    
+    
+    <!--loading spinner-->
+    <aura:if isTrue="{!v.Spinner}">
+        <div aura:id="spinnerId" class="slds-spinner_container" style="position: fixed;">
+            <lightning:spinner aura:id="Spinner" alternativeText="Loading" size="medium" variant="brand"/>
+        </div>
+    </aura:if> 
+    <!-- =========== -->
+    
+    
+    <div class="container">   
+        
+        <!-- Custom Page Header -->
+        <div class="slds-page-header slds-m-bottom_xx-small">
+            <div class="slds-media">
+                <div class="slds-media__figure">
+                    <span class="slds-icon_container slds-icon-custom-custom67" title="General settings for application">
+                        <lightning:icon iconName="custom:custom67" alternativeText="Accounts" />
+                    </span>
+                </div>
+                <div class="slds-media__body">
+                    <h1 class="slds-page-header__title slds-truncate slds-align-middle" title="General EBizCharge Settings">EBizCharge - Settings</h1>
+                    <p class="slds-text-body_small slds-line-height_reset">Settings</p>
+                </div>
+            </div>
+        </div>
+        <!--===================-->
+        
+        
+        <!-- Page Content Area -->
+        <div class="slds-grid slds-wrap">
+            
+            <!--====== Default Display Settings ======-->
+            <div class="slds-col slds-size_1-of-1 slds-m-bottom_small">
+                <lightning:card>
+                    <div class="slds-p-horizontal_medium">
+                        
+                        <div class="slds-page-header">
+                            <div class="slds-page-header__row">
+                                <div class="slds-page-header__col-title">
+                                    Default Display Settings &nbsp;&nbsp;
+                                    <lightning:helptext content="Here you can set what the default date range is on each EBizCharge page that contains tables with data. For example,you could set your transaction history to display just today's transactions and your received email payments page to display payments made via Email Pay within the past month." />
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="slds-form slds-m-around_medium">
+                            <label class="slds-form-element__label"><i>Transaction History</i></label>
+                            <div class="slds-form-element slds-form-element_horizontal slds-size_2-of-4">
+                                <lightning:combobox label="All transactions:" 
+                                                    value="{!v.Settings.Transaction_Filter_By__c}" 
+                                                    options="{! v.DefaultTransBy }" 
+                                                    onchange="{! c.TransHandler }"/>
+                            </div>
+                            
+                            
+                            <label class="slds-form-element__label"><i>Email Pay</i></label>
+                            <div class="slds-form-element slds-form-element_horizontal slds-size_2-of-4">
+                                <lightning:combobox label="Pending Requests:" 
+                                                    value="{!v.Settings.Email_Pending_Req_Filter_By__c}" 
+                                                    options="{! v.DefaultEmailReqSendBy }" 
+                                                    onchange="{! c.TransHandler }"/>
+                            </div>
+                            
+                            <label class="slds-form-element__label"><i>Sync - Upload</i></label>
+                            <div class="slds-form-element slds-form-element_horizontal slds-size_2-of-4">
+                                <lightning:combobox label="Orders:" 
+                                                    value="{!v.Settings.Sync_Orders_Filter_By__c}"  
+                                                    options="{! v.DefaultOrdersBy }" 
+                                                    onchange="{! c.TransHandler }"/>
+                            </div>
+                            <div class="slds-form-element slds-form-element_horizontal slds-size_2-of-4">
+                                <lightning:combobox label="Accounts:" 
+                                                    value="{!v.Settings.Sync_Accounts_Filter_By__c}"  
+                                                    options="{! v.DefaultAccountsBy }" 
+                                                    onchange="{! c.TransHandler }"/>
+                            </div>
+                            <div class="slds-form-element slds-form-element_horizontal slds-size_2-of-4">
+                                <lightning:combobox label="Products:" 
+                                                    value="{!v.Settings.Sync_Products_Filter_By__c}"  
+                                                    options="{! v.DefaultProductsBy }" 
+                                                    onchange="{! c.TransHandler }"/>
+                            </div>
+                            
+                        </div>
+                        
+                        <div class="slds-m-vertical_small slds-align_absolute-center">
+                            <lightning:button label="Save"
+                                              variant="brand"
+                                              iconName="utility:save"
+                                              onclick="{! c.saveSettings }"
+                                              />
+                        </div>
+                    </div>
+                </lightning:card>
+            </div>
+            <!--==================================-->
+            
+            
+            <!--====== Transaction Settings ======-->
+            <div class="slds-col slds-size_1-of-1 slds-m-bottom_small">
+                <lightning:card>
+                    <div class="slds-p-horizontal_medium">
+                        
+                        <div class="slds-page-header">
+                            <div class="slds-page-header__row">
+                                <div class="slds-page-header__col-title">
+                                    Transaction Settings
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="slds-form slds-m-around_medium">
+                            <div class="slds-form-element slds-form-element_horizontal slds-size_1-of-3 slds-cst_padding">
+                                <lightning:input type="checkbox" 
+                                                 label="Allow partial payments" 
+                                                 checked="{!v.Settings.Allow_Partial_Payment__c}"
+                                                 />
+                            </div>
+                            
+                            
+                            <label class="slds-form-element__label"><i>Payments on Orders</i></label>
+                            <div class="slds-form-element slds-form-element_horizontal slds-size_1-of-3 slds-cst_padding">
+                                <lightning:input type="radio" 
+                                                 name="selectTaxBy" 
+                                                 label="Allow pre-auths and deposits to be taken on orders"
+                                                 value="Pre-auths and Deposit"
+                                                 checked="{!v.Settings.Allow_Order_Payment_Type__c == 'Pre-auths and Deposit'}"
+                                                 onchange="{!c.paymentTypeHandler}"
+                                                 />
+                            </div>
+                            <div class="slds-form-element slds-form-element_horizontal slds-size_1-of-3 slds-cst_padding">
+                                <lightning:input type="radio" 
+                                                 name="selectTaxBy" 
+                                                 label="Allow only pre-auths on orders"
+                                                 value="Pre-auths"
+                                                 checked="{!v.Settings.Allow_Order_Payment_Type__c == 'Pre-auths'}"
+                                                 onchange="{!c.paymentTypeHandler}"
+                                                 />
+                            </div>
+                            <div class="slds-form-element slds-form-element_horizontal slds-size_1-of-3 slds-cst_padding" >
+                                <lightning:input type="radio" 
+                                                 name="selectTaxBy" 
+                                                 label="Allow only deposits on orders"
+                                                 value="Deposit"
+                                                 checked="{!v.Settings.Allow_Order_Payment_Type__c == 'Deposit'}"
+                                                 onchange="{!c.paymentTypeHandler}"
+                                                 />
+                            </div>
+                            
+                            <label class="slds-form-element__label"><i>Sales Tax</i></label>
+                            <div class="slds-form__row slds-m-left_xxx-small">
+                                <div class="slds-form-element slds-form-element_horizontal slds-size_2-of-10 slds-cst_padding">
+                                    <lightning:input type="checkbox" 
+                                                     label="Show sales tax field" 
+                                                     checked="{!v.Settings.Show_Tax_Field__c}"
+                                                     />
+                                </div>
+                                <div class="slds-form-element slds-form-element_horizontal slds-size_2-of-5 slds-cst_padding">
+                                    <lightning:combobox aura:id="selectItem" 
+                                                        variant="label-hidden"
+                                                        value="{!v.Settings.Tax_Action__c}"
+                                                        options="{!v.TaxAction}"
+                                                        onchange="{!c.TaxActionHandler}"
+                                                        />
+                                </div>
+                            </div>
+                            
+                            <aura:renderIf isTrue="{!v.Settings.Tax_Action__c == 'Tax Calculate'}">
+                            <div class="slds-form__row slds-m-left_large">
+                                <div class="slds-form-element slds-form-element_horizontal slds-size_1-of-6 slds-cst_padding" >
+                                    <lightning:input type="radio" 
+                                                     name="selectTaxBy" 
+                                                     label="Auto calculate sales tax"
+                                                     value="Auto"
+                                                     checked="{!v.Settings.Tax_Calculate_By__c == 'Auto'}"
+                                                     onchange="{!c.TaxTypeHandler}"
+                                                     />
+                                </div>
+                                <div class="slds-form-element slds-form-element_horizontal slds-size_1-of-2 slds-cst_padding">
+                                    <lightning:input type="text" 
+                                                     label="Default sales tax %"
+                                                     value="{!v.Settings.Tax_Default_Percent__c}" 
+                                                     class="cst-width"
+                                                     />
+                                    
+                                </div>
+                            </div>
+                            
+                            <div class="slds-form__row slds-m-left_large slds-m-bottom_small">
+                                <div class="slds-form-element slds-form-element_horizontal slds-size_1-of-6 slds-cst_padding" >
+                                    <lightning:input type="radio" 
+                                                     name="selectTaxBy" 
+                                                     label="Manually enter sales tax"
+                                                     value="Manual"
+                                                     checked="{!v.Settings.Tax_Calculate_By__c == 'Manual'}"
+                                                     onchange="{!c.TaxTypeHandler}"
+                                                     />
+                                </div>
+                                <div class="slds-form-element slds-form-element_horizontal slds-size_1-of-3 slds-cst_padding">
+                                    <lightning:combobox aura:id="selectItem" 
+                                                        variant="label-hidden"
+                                                        value="{!v.Settings.Tax_Manual_Type__c}"
+                                                        options="{!v.TaxManualType}"
+                                                        onchange="{!c.TaxManualHandler}"
+                                                        />
+                                    
+                                </div>
+                            </div>
+                            </aura:renderIf>
+                            
+                            
+                            
+                            
+                            
+                            
+                            
+                            
+                            
+                        </div>
+                        
+                        <div class="slds-m-vertical_small slds-align_absolute-center">
+                            <lightning:button label="Save"
+                                              variant="brand"
+                                              iconName="utility:save"
+                                              onclick="{! c.saveSettings }"
+                                              />
+                        </div>
+                    </div>
+                </lightning:card>
+            </div>
+            <!--==================================-->
+            
+            
+            <!--======= Sync Settings =========-->
+            <div class="slds-col slds-size_1-of-1 slds-m-bottom_small">
+                <lightning:card>
+                    <div class="slds-p-horizontal_medium">
+                        
+                        <div class="slds-page-header">
+                            <div class="slds-page-header__row">
+                                <div class="slds-page-header__col-title">
+                                    Sync Settings
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="slds-form slds-m-around_medium">
+                            <label class="slds-form-element__label"><i>Uploading to the EBizCharge hub</i></label>
+                            <div class="slds-form-element slds-form-element_horizontal slds-size_1-of-2 slds-cst_padding">
+                                <lightning:input type="checkbox" 
+                                                 checked="{!v.Settings.Auto_Upload_Order__c}"
+                                                 label="Automatically upload orders as they're created or modified" 
+                                                 />
+                            </div>
+                            
+                            <div class="slds-form-element slds-form-element_horizontal slds-size_1-of-2 slds-cst_padding">
+                                <lightning:input type="checkbox"
+                                                 checked="{!v.Settings.Auot_Upload_Account__c}"
+                                                 label="Automatically upload accounts as they're created or modified" 
+                                                 />
+                            </div>
+                            
+                            <div class="slds-form-element slds-form-element_horizontal slds-size_1-of-2 slds-cst_padding">
+                                <lightning:input type="checkbox" 
+                                                 checked="{!v.Settings.Auot_Upload_Product__c}"
+                                                 label="Automatically upload products as they're created or modified"
+                                                 />
+                            </div>
+                            
+                            <label class="slds-form-element__label"><i>Importing into Salesforce</i></label>
+                            <div class="slds-form-element slds-form-element_horizontal slds-size_1-of-2 slds-cst_padding">
+                                <lightning:input type="checkbox" 
+                                                 label="Automatically import orders from connected software into Salesforce"
+                                                 />
+                            </div>
+                            <div class="slds-form-element slds-form-element_horizontal slds-size_1-of-2 slds-cst_padding">
+                                <lightning:input type="checkbox" 
+                                                 label="Automatically import accounts from connected software into Salesforce"
+                                                 />
+                            </div>
+                            <div class="slds-form-element slds-form-element_horizontal slds-size_1-of-2 slds-cst_padding">
+                                <lightning:input type="checkbox" 
+                                                 label="Automatically import products from connected software into Salesforce" 
+                                                 />
+                            </div>
+                            
+                            <label class="slds-form-element__label"><i>Applying payments</i></label>
+                            <div class="slds-form-element slds-form-element_horizontal slds-size_7-of-12 slds-cst_padding">
+                                <lightning:input type="checkbox" 
+                                                 checked="{!v.Settings.Auto_Apply_Received_Payment__c}"
+                                                 label="Automatically apply received payments from connected software to orders and accounts in Salesforce" 
+                                                 />
+                            </div>
+                                                       
+                        </div>
+                        
+                        <div class="slds-m-vertical_small slds-align_absolute-center">
+                            <lightning:button label="Save"
+                                              variant="brand"
+                                              iconName="utility:save"
+                                              onclick="{! c.saveSettings }"
+                                              />
+                        </div>
+                    </div>
+                </lightning:card>
+            </div>
+            <!--==================================-->
+            
+            
+            <!--======= Setup =========-->
+            <div class="slds-col slds-size_1-of-1 slds-m-bottom_small">
+                <lightning:card>
+                    <div class="slds-p-horizontal_medium">
+                        
+                        <div class="slds-page-header">
+                            <div class="slds-page-header__row">
+                                <div class="slds-page-header__col-title">
+                                    Setup
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="slds-form slds-m-around_medium">
+                            
+                            <div class="slds-form-element slds-form-element_horizontal slds-size_2-of-4">
+                            	<lightning:input label="Component Label" 
+                                                 value="{!v.Settings.Component_Label__c}"
+                                                 />
+                            </div>
+                            
+                            
+                            <div class="slds-form-element slds-form-element_horizontal slds-size_2-of-4">
+                                <lightning:input required="true"
+                                                 label="Security Id" 
+                                                 value="{!v.Settings.Security_Token__c}"
+                                                 />
+                            </div>
+                            
+                            <div class="slds-form-element slds-form-element_horizontal slds-size_2-of-4">
+                                <lightning:input name="username" 
+                                                 required="true"
+                                                 label="User Name" 
+                                                 value="{!v.Settings.User_Name__c}"
+                                                 />
+                            </div>
+                            <div class="slds-form-element slds-form-element_horizontal slds-size_2-of-4">
+                                <lightning:input name="password" 
+                                                 required="true"
+                                                 label="Password" 
+                                                 value="{!v.Settings.Password__c}"
+                                                 />
+                            </div>
+                            
+                        </div>
+                        
+                        <div class="slds-m-vertical_small slds-align_absolute-center">
+                            <lightning:button label="Save"
+                                              variant="brand"
+                                              iconName="utility:save"
+                                              onclick="{! c.saveSettings }"
+                                              />
+                        </div>
+                    </div>
+                </lightning:card>
+            </div>
+            <!--==================================-->
+            
+            
+        </div>
+        <!--===================-->
+        
+        
+    </div>
+</aura:component>

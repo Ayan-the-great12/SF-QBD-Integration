@@ -1,0 +1,275 @@
+<aura:component controller="EBC_ComponentController" implements="flexipage:availableForRecordHome" access="global">
+    <aura:attribute name="ObjectName" type="String" default="" required="true" />
+    <aura:attribute name="ObjectLabel" type="String" default="" required="true" />
+    <aura:attribute name="recordId" type="String" default="" required="true" />
+    <aura:attribute name="Settings" type="Object" required="true" />
+
+    <aura:attribute name="Spinner" type="boolean" default="false" />
+    <aura:attribute name="isOpen" type="boolean" default="false" />
+
+    <aura:attribute name="ContactId" type="String" />
+    <aura:attribute name="ContactName" type="String" />
+    <aura:attribute name="accDetail" type="Account" />
+    <aura:attribute name="orderDetail" type="Order" />
+    <aura:attribute name="contactDetail" type="Contact" />
+    <aura:attribute name="CustomCustomerDetail" type="EBizCharge_Fields_Config__c" />
+    <aura:attribute name="CustomCustId" type="String" />
+    <aura:attribute name="CustomCustName" type="String" />
+    <aura:attribute name="OpportunityDetail" type="Opportunity" />
+    <aura:attribute name="paymentType" type="String" default="Deposit" />
+    <aura:attribute name="paymentOptions" type="List" />
+
+    <aura:attribute name="PaymentTotal" type="double" default="0.0" />
+    <aura:attribute name="Amount" type="double" default="0.0" />
+    <aura:attribute name="Tax" type="double" default="0.0" />
+    <aura:attribute name="TaxTitle" type="String" default="" />
+    <aura:attribute name="ParentActiveTab" type="string" default="" />
+    <aura:attribute name="disableSubmitBtn" type="boolean" default="true" />
+
+    <aura:attribute name="payByCardInfo" type="sObject" default="{}" />
+    <aura:attribute name="payByACHInfo" type="sObject" default="{}" />
+    <aura:attribute name="saveCardsList" type="List" />
+    <aura:attribute name="saveACHList" type="List" />
+    <aura:attribute name="pps" type="sObject" default="{}" />
+
+    <aura:attribute name="isAVSCheck" type="Boolean" default="true" />
+    <aura:attribute name="avsCheckModal" type="Boolean" default="false" />
+    <aura:attribute name="avsCheckModalHeader" type="String" default="Security Mismatch" />
+    <aura:attribute name="avsCheckAction" type="String" default="Mismatch" />
+    <aura:attribute name="avsRefNum" type="String" default="" />
+    <aura:attribute name="avsCardCode" type="String" default="" />
+    <aura:attribute name="avsAddress" type="String" default="" />
+    <aura:attribute name="avsZipCode" type="String" default="" />
+
+    <aura:attribute name="UseFullAmountForAVS" type="boolean" default="false" />
+    <aura:attribute name="resResultCode" type="String" default="" />
+    <aura:attribute name="paymentMethodIDVar" type="String" default="" />
+    <aura:attribute name="resError" type="String" default="" />
+    <aura:attribute name="savePaymentMethod" type="boolean" default="true" />
+
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+
+    <!--loading spinner start -->
+    <aura:if isTrue="{!v.Spinner}">
+        <div aura:id="spinnerId" class="slds-spinner_container" style="position: fixed; z-index:9999;">
+            <lightning:spinner aura:id="Spinner" alternativeText="Loading" size="medium" variant="brand" />
+        </div>
+    </aura:if>
+    <!-- Loading spinner end-->
+
+    <aura:if isTrue="{!v.isOpen}">
+
+        <!--====== MODAL BOX Start======-->
+        <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open slds-modal_medium">
+            <div class="slds-modal__container" style="width:75%">
+                <!-- ====== MODAL BOX HEADER Start ======-->
+                <header class="slds-modal__header">
+                    <lightning:buttonIcon iconName="utility:close" onclick="{! c.closeModel }" alternativeText="close" variant="bare-inverse" class="slds-modal__close" />
+                    <h2 id="modal-heading-01" class="slds-text-heading_medium slds-hyphenate">
+                        Take Payment on {!v.ObjectLabel}
+                    </h2>
+                </header>
+
+                <!--====== MODAL BOX BODY Part Start ======-->
+                <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1">
+                    <!--====== Model Content Header Part Start ======-->
+                    <div class="slds-m-bottom_medium" role="banner">
+                        <div class="slds-grid">
+                            <div class="slds-col slds-has-flexi-truncate">
+                                <div class="slds-media slds-media--center">
+                                    <div class="slds-media__figure">
+                                        <lightning:icon iconName="standard:client" size="medium" />
+                                    </div>
+                                    <div class="slds-media__body">
+                                        <p class="slds-page-header__title slds-truncate slds-align-middle" title="Order Number">Customer : {!v.CustomCustName}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="slds-col slds-no-flex slds-grid slds-align-bottom">
+                                <div class="slds-text-heading--small">
+                                    Payment Total:
+                                    <lightning:formattedNumber value="{!v.PaymentTotal}" style="currency" currencyCode="{!v.Settings.Ebiz_C__Currency__c}" maximumFractionDigits="2" />
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="slds-form__row">
+                        <div class="slds-form__item" role="listitem">
+                            <fieldset class="slds-form-element slds-form-element_compound slds-form-element_stacked">
+                                <div class="slds-form-element__row">
+                                    <div class="slds-size_2-of-4">
+                                        <lightning:input type="number" required="true" label="Amount" placeholder="$ Input payment amount..." aura:id="req-fieldsrr" value="{!v.Amount}" formatter="currency" step="0.01" messageWhenBadInput="Input numeric values for amount" onfocusout="{!c.onChangeAmount}"
+                                            messageWhenValueMissing="Required Field" maxlength="18" />
+                                    </div>
+                                    <div class="slds-size_1-of-5">
+                                        <aura:renderIf isTrue="{!v.Settings.Ebiz_C__Show_Tax_Field__c}">
+                                            <lightning:input type="number" name="tax" label="{!v.TaxTitle}" disabled="{!v.Settings.Ebiz_C__Tax_Calculate_By__c == 'Manual' ? false : true}" formatter="{!v.Settings.Ebiz_C__Tax_Manual_Type__c == 'Use Percent' ? 'percent-fixed' : 'currency'}" step="0.01"
+                                                value="{!v.Tax}" onchange="{!c.onChangeAmount}" />
+                                        </aura:renderIf>
+                                    </div>
+                                </div>
+                            </fieldset>
+                        </div>
+                        <div class="slds-form__item" role="listitem">
+                            <div class="slds-size_2-of-4">
+                                <aura:renderIf isTrue="{!v.ObjectName == 'Order'}">
+                                    <lightning:combobox name="paymenttype" label="Payment Type" value="{!v.paymentType}" placeholder="Select Payment Type" options="{! v.paymentOptions }" onchange="{! c.PaymentHandler }" />
+                                </aura:renderIf>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!--====== Tabs Part Start ======-->
+                    <div class="slds-tabs--default">
+                        <lightning:tabset>
+                            <lightning:tab label="Pay by Card" id="PayByCard" onactive="{! c.handleParentActiveTab }">
+
+                                <c:ComponentPayByCardCustomCustomer aura:id="UseCmpPayByCard" parentComp="{!this}" CustomCustDetail="{!v.CustomCustomerDetail}" saveCardsList="{!v.saveCardsList}" payByCardInfo="{!v.payByCardInfo}" savePaymentMethod="{!v.savePaymentMethod}" pps="{!v.pps}" disableSubmitBtn="{!v.disableSubmitBtn}"
+                                />
+                            </lightning:tab>
+                            <lightning:tab label="Pay by Bank Account" id="PayByACH" onactive="{! c.handleParentActiveTab }">
+
+                                <c:ComponentPayByACHCustomCustomer aura:id="UseCmpPayByACH" parentComp="{!this}" CustomCustDetail="{!v.CustomCustomerDetail}" saveACHList="{!v.saveACHList}" payByACHInfo="{!v.payByACHInfo}" savePaymentMethod="{!v.savePaymentMethod}" pps="{!v.pps}" disableSubmitBtn="{!v.disableSubmitBtn}" />
+                            </lightning:tab>
+                        </lightning:tabset>
+                    </div>
+                    <!--=============================-->
+                    <div class="slds-clearfix">
+                        <div class="slds-float_right">
+                            <div class="slds-text-heading--small">
+                                Payment Total:
+                                <lightning:formattedNumber value="{!v.PaymentTotal}" style="currency" currencyCode="{!v.Settings.Ebiz_C__Currency__c}" maximumFractionDigits="2" />
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!--====== MODAL BOX FOOTER Part Start ======-->
+                <footer class="slds-modal__footer">
+                    <lightning:button variant="neutral" label="Cancel" title="Cancel" onclick="{! c.closeModel }" />
+
+                    <lightning:button variant="brand" label="Process Payment" title="Process Payment" disabled="{!v.disableSubmitBtn}" onclick="{!c.processPayment}" />
+
+                </footer>
+
+            </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open"></div>
+
+    </aura:if>
+
+    <aura:if isTrue="{!v.avsCheckModal}">
+        <!--###### MODAL BOX Start######-->
+        <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+            <div class="slds-modal__container">
+                <!-- ###### MODAL BOX HEADER Start ######-->
+                <header class="slds-modal__header slds-theme_error slds-theme_alert-texture">
+                    <lightning:buttonIcon iconName="utility:close" onclick="{! c.closeModel }" alternativeText="close" variant="bare-inverse" class="slds-modal__close" />
+                    <h2 id="modal-heading-01" class="slds-text-heading_medium">{!v.avsCheckModalHeader}</h2>
+                </header>
+                <!--###### MODAL BOX BODY Part Start######-->
+                <div class="slds-modal__content slds-p-vertical_medium slds-text-align_center" id="modal-content-id-1">
+
+                    <aura:if isTrue="{!v.avsCheckAction == 'Mismatch'}">
+
+                        <aura:if isTrue="{!not(empty(v.avsZipCode))}">
+                            <p class="slds-p-vertical_xx-small"> Address:
+                                <aura:if isTrue="{!v.avsAddress == 'Not Compatible'}">
+                                    <span class="slds-p-left_medium slds-text-color_destructive ">Not Compatible</span>
+                                    <aura:set attribute="else">
+                                        <aura:if isTrue="{!v.avsAddress == 'AddressNotMatch'}">
+                                            <span class="slds-p-left_xx-large slds-text-color_destructive ">Not a
+                                                match</span>
+                                            <aura:set attribute="else">
+                                                <span class="slds-p-left_xx-large"> Match </span>
+                                            </aura:set>
+                                        </aura:if>
+                                    </aura:set>
+                                </aura:if>
+
+                            </p>
+                            <p class="slds-p-vertical_xx-small"> Zip/Postal Code:
+                                <aura:if isTrue="{!v.avsZipCode == 'Not Compatible'}">
+                                    <span class="slds-p-left_medium slds-text-color_destructive ">Not Compatible</span>
+                                    <aura:set attribute="else">
+                                        <aura:if isTrue="{!v.avsZipCode == 'ZipNotMatch'}">
+                                            <span class="slds-p-left_medium slds-text-color_destructive ">Not a match</span>
+                                            <aura:set attribute="else">
+                                                <span class="slds-p-left_medium"> Match </span>
+                                            </aura:set>
+                                        </aura:if>
+                                    </aura:set>
+                                </aura:if>
+
+                            </p>
+                        </aura:if>
+
+                        <p class="slds-p-vertical_xx-small slds-m-bottom_small"> CVV2/CVC:
+                            <aura:if isTrue="{!v.avsCardCode == 'CardCodeNotMatch'}">
+                                <span class="slds-p-left_large slds-text-color_destructive ">Not a match</span>
+                                <aura:set attribute="else">
+                                    <span class="slds-p-left_large"> Match</span>
+                                </aura:set>
+                            </aura:if>
+                        </p>
+
+                        <aura:if isTrue="{!empty(v.avsZipCode)}">
+                            <p class="slds-p-vertical_xx-small slds-m-bottom_small"> AVS Result:
+                                <aura:if isTrue="{!v.avsAddress == 'Card Number Not On File'}">
+                                    <span class="slds-p-left_large slds-text-color_destructive ">Card Number Not On File</span>
+                                </aura:if>
+                                <aura:if isTrue="{!v.avsAddress == 'Address Information not verified for domestic transaction'}">
+                                    <span class="slds-p-left_large slds-text-color_destructive ">Address Information not verified for domestic transaction</span>
+                                </aura:if>
+                                <aura:if isTrue="{!v.avsAddress == 'Retry / System Unavailable'}">
+                                    <span class="slds-p-left_large slds-text-color_destructive ">Retry / System Unavailable</span>
+                                </aura:if>
+                                <aura:if isTrue="{!v.avsAddress == 'Service Not Supported'}">
+                                    <span class="slds-p-left_large slds-text-color_destructive ">Service Not Supported</span>
+                                </aura:if>
+                                <aura:if isTrue="{!v.avsAddress == 'Address Verification Not Allowed For Card Type'}">
+                                    <span class="slds-p-left_large slds-text-color_destructive ">Address Verification Not Allowed For Card Type</span>
+                                </aura:if>
+                                <aura:if isTrue="{!v.avsAddress == 'Global Non-AVS participant'}">
+                                    <span class="slds-p-left_large slds-text-color_destructive ">Global Non-AVS participant</span>
+                                </aura:if>
+                            </p>
+                        </aura:if>
+
+                        <p class="slds-p-vertical_xx-small"> This transaction could result in a chargeback.</p>
+                        <p class="slds-p-vertical_xx-small"> Do you still wish to accept?</p>
+
+                        <p class="slds-m-vertical_large">
+                            <lightning:button variant="brand" label="Update and Retry" title="Update and Retry" class="slds-p-horizontal_small" onclick="{! c.UpdateRetryHandler }" />
+                        </p>
+                        <aura:set attribute="else">
+                            <p class="slds-p-vertical_x-small">
+                                Are you sure you want to void this transaction?
+                            </p>
+                            <p class="slds-p-vertical_x-small">
+                                Reference Number: {!v.avsRefNum}
+                            </p>
+                        </aura:set>
+                    </aura:if>
+                </div>
+                <!--###### MODAL BOX FOOTER Part Start ######-->
+                <footer class="slds-modal__footer">
+                    <aura:if isTrue="{!v.avsCheckAction == 'Mismatch'}">
+                        <lightning:button variant="neutral" label="Cancel transaction" title="Cancel transaction" onclick="{! c.CancelTransactionHandler }" />
+                        <lightning:button variant="destructive-text" label="Accept transaction anyway" title="Accept transaction anyway" onclick="{! c.AcceptTransactionHandler }" />
+
+                        <aura:set attribute="else">
+                            <lightning:button variant="neutral" label="Cancel" title="Cancel" onclick="{! c.cancelHandler }" />
+                            <lightning:button variant="destructive-text" label="Yes, void now" title="Yes, void now" onclick="{! c.voideHandler }" />
+                        </aura:set>
+                    </aura:if>
+                </footer>
+            </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open"></div>
+        <!--###### MODAL BOX Part END Here ######-->
+    </aura:if>
+</aura:component>

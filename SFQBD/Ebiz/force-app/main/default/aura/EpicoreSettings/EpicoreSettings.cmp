@@ -1,0 +1,57 @@
+<aura:component controller="eBc_SettingController" implements="flexipage:availableForAllPageTypes" access="global">
+    <ltng:require styles="{!$Resource.NoHeader}" />
+    <aura:attribute name="parentComp" type="Aura.Component" required="true" />
+    <aura:attribute name="Settings" type="EBizcharge_Setting__c" default="{'sobjectType': 'EBizcharge_Setting__c'}" />
+    <aura:attribute name="Spinner" type="boolean" default="false" />
+    <aura:attribute name="ApplicationID" type="List" />
+    <aura:attribute name="LookupID" type="String" />
+    <aura:attribute name="DataFlowDirection" type="List" />
+    <aura:attribute name="ShowLookup" type="boolean" default="true" />
+    <aura:attribute name="DivisionID" type="String" />
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+
+    <!--======= Epicore Setting =========-->
+    <div class="slds-col slds-size_1-of-1 slds-m-bottom_small">
+        <lightning:card>
+            <div class="slds-p-horizontal_medium">
+                <div class="slds-page-header">
+                    <div class="slds-page-header__row">
+                        <div class="slds-page-header__col-title">
+                            Connectors
+                        </div>
+                    </div>
+                </div>
+                <div class="slds-form-element slds-form-element_vertical slds-size_1-of-2 slds-cst_padding">
+                    <label class="slds-form-element__label"><i>Epicor Settings</i></label>
+                    <div class="slds-form-element slds-form-element_horizontal slds-size_1-of-3 slds-cst_padding">
+                        <lightning:input type="checkbox" checked="{!v.Settings.Ebiz_C__Data_Integration__c}" label="Enable Epicor Integration" aura:id="integrationcheckbox" onchange="{! c.integrationHandler }" />
+                    </div>
+                </div>
+                <aura:renderIf isTrue="{!v.Settings.Ebiz_C__Data_Integration__c == true}">
+                    <div class="slds-form-element slds-form-element_horizontal slds-size_2-of-4">
+                        <lightning:combobox label="Application ID" aura:id="applicationid" value="{!v.Settings.Ebiz_C__Application_ID__c}" options="{! v.ApplicationID }" onchange="{! c.TransHandler }" />
+                    </div>
+                    <aura:renderIf isTrue="{!v.ShowLookup == true}">
+                        <div class="slds-form-element slds-form-element_horizontal slds-size_2-of-4">
+                            <lightning:input type="text" label="Lookup ID" aura:id="lookup" value="{!v.LookupID}" />
+                        </div>
+                    </aura:renderIf>
+                    <!-- <div class="slds-form-element slds-form-element_horizontal slds-size_2-of-4">
+                <lightning:combobox label="Data Flow Direction" 
+                                    value="{!v.Settings.Ebiz_C__Data_Flow_Direction__c}" 
+
+                                    options="{! v.DataFlowDirection }"
+                                    aura:id = "DataFlow" 
+
+                                    onchange="{! c.TransHandler }"/>
+            </div>  -->
+                    <div class="slds-m-vertical_small slds-align_absolute-center">
+                        <lightning:button label="Get Company Information" variant="brand" onclick="{! c.getCompanyData }" />
+                    </div>
+                </aura:renderIf>
+            </div>
+            <!-- </div> -->
+        </lightning:card>
+    </div>
+    <!--==================================-->
+</aura:component>

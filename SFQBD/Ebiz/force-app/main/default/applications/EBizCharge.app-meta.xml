@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomApplication xmlns="http://soap.sforce.com/2006/04/metadata">
+    <brand>
+        <headerColor>#0070D2</headerColor>
+        <logo>logo_ebizcharge</logo>
+        <logoVersion>1</logoVersion>
+        <shouldOverrideOrgTheme>true</shouldOverrideOrgTheme>
+    </brand>
+    <description>Process credit and debit cards, ACH checks within SFDC</description>
+    <formFactors>Small</formFactors>
+    <formFactors>Large</formFactors>
+    <isNavAutoTempTabsDisabled>false</isNavAutoTempTabsDisabled>
+    <isNavPersonalizationDisabled>false</isNavPersonalizationDisabled>
+    <label>EBizCharge</label>
+    <navType>Standard</navType>
+    <tabs>Accounts</tabs>
+    <tabs>Contacts</tabs>
+    <tabs>Process_Payment</tabs>
+    <tabs>Recurring</tabs>
+    <tabs>Transactions</tabs>
+    <tabs>Email_Pay</tabs>
+    <tabs>Sync</tabs>
+    <tabs>Settings</tabs>
+    <tabs>Request_Payment_Method</tabs>
+    <uiType>Lightning</uiType>
+    <utilityBar>EBizCharge_UtilityBar</utilityBar>
+</CustomApplication>

@@ -1,0 +1,202 @@
+<aura:component controller="eBc_RequestPaymentMethodApxc" implements="flexipage:availableForAllPageTypes" access="global">
+    <ltng:require styles="{!$Resource.NoHeader}" />
+    <aura:attribute name="Spinner" type="boolean" default="false" />
+    <aura:attribute name="Settings" type="Object" />
+    <aura:attribute name="MainTitle" type="string" default="" />
+    <aura:attribute name="NoOfSelectedRecords" type="Integer" default="0" />
+    <aura:attribute name="NoOfSelectedRecordsPending" type="Integer" default="0" />
+    <aura:attribute name="NoOfSelectedRecordsAdded" type="Integer" default="0" />
+    <aura:attribute name="ActiveTab" type="string" default="" />
+    <aura:attribute name="TaxTitle" type="String" />
+    <aura:attribute name="footer" type="String" default="Date and Time displayed in UTC coordinated universal time clock" />
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+    <aura:attribute name="accountId" type="String" />
+    <aura:attribute name="accountName" type="String" />
+    <aura:attribute name="accountDetail" type="Account" />
+    <aura:attribute name="orderId" type="String" default="" />
+    <aura:attribute name="SelectedRecords" type="list" />
+    <aura:attribute name="NoOfRequestSend" type="Integer" />
+    <aura:attribute name="emailTemplist" type="list" />
+    <aura:attribute name="emailTempNameslist" type="list" />
+    <aura:attribute name="Template" type="String" default="" />
+    <aura:attribute name="fromName" type="String" default="" />
+    <aura:attribute name="Subject" type="String" default="" />
+    <aura:attribute name="fromEmail" type="String" default="" />
+    <aura:attribute name="toEmail" type="String" default="" />
+    <aura:attribute name="Notes" type="String" default="" />
+    <aura:attribute name="isActive" type="boolean" default="false" />
+    <aura:attribute name="disableSubmitBtn" type="boolean" default="true" />
+    <aura:attribute name="ShowWarn" type="Boolean" default="false" required="true" />
+    <aura:attribute name="ObjectName" type="String" default="" required="true" />
+    <aura:attribute name="recordId" type="String" default="" required="true" />
+    <aura:attribute name="noEmailAlert" type="String" default="Select at least one record having an email" />
+    <aura:attribute name="recordWithNoEmail" type="Boolean" default="false" />
+
+    <aura:renderIf isTrue="{!v.ShowWarn}">
+        <c:StartUpMessage />
+    </aura:renderIf>
+    <!--loading spinner-->
+    <aura:if isTrue="{!v.Spinner}">
+        <div aura:id="spinnerId" class="slds-spinner_container" style="position: fixed;">
+            <lightning:spinner aura:id="Spinner" alternativeText="Loading" size="medium" variant="brand" />
+        </div>
+    </aura:if>
+    <!--Main Page Content Area-->
+    <div class="container slds-page-header slds-page-header_record-home">
+        <!--Custom Page Header-->
+        <div class="slds-page-header__row">
+            <div class="slds-page-header__col-title">
+                <div class="slds-media">
+                    <div class="slds-media__figure">
+                        <span class="slds-icon_container slds-icon-standard-event">
+                            <lightning:icon iconName="standard:event" alternativeText="Orders" />
+                        </span>
+                    </div>
+                    <div class="slds-media__body">
+                        <div class="slds-page-header__name">
+                            <div class="slds-page-header__name-title">
+                                <h1>
+                                    <aura:If isTrue="{!v.ActiveTab == 'Send'}">
+                                        <span>Request Payment Methods <lightning:badge label="{!v.NoOfSelectedRecords}" iconName="utility:success" /></span>
+                                    </aura:If>
+                                    <aura:If isTrue="{!v.ActiveTab == 'Pending'}">
+                                        <span>Request Payment Methods <lightning:badge label="{!v.NoOfSelectedRecordsPending}" iconName="utility:success" /></span>
+                                    </aura:If>
+                                    <aura:If isTrue="{!v.ActiveTab == 'Received'}">
+                                        <span>Request Payment Methods <lightning:badge label="{!v.NoOfSelectedRecordsAdded}" iconName="utility:success" /></span>
+                                    </aura:If>
+                                    <span class="slds-page-header__title slds-truncate">{!v.MainTitle}</span>
+                                </h1>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!--Custom Page Content-->
+        <div class="slds-page-header__row slds-page-header__row_gutters">
+            <div class="slds-page-header__col-details">
+                <div class="slds-page-header__detail-row">
+                    <lightning:tabset aura:id="tabs" selectedTabId="Send">
+                        <!--Creat Requests Tabs Block-->
+                        <lightning:tab label="Send Requests" id="Send" onactive="{!c.handleActiveTab}">
+                            <c:EbizCharge_SendRequestMethod aura:id="Send Request" Settings="{!v.Settings}" NoOfSelectedRecords="{!v.NoOfSelectedRecords}" recordId="{!v.recordId}" ObjectName="{!v.ObjectName}" SelectedRecords="{!v.SelectedRecords}" NoOfRequestSend="{!v.NoOfRequestSend}"
+                            recordWithNoEmail="{!v.recordWithNoEmail}" disableSubmitBtn="{!v.disableSubmitBtn}" parentComp="{!this}" />
+                        </lightning:tab>
+                        <!--Panding Requests Tabs Block-->
+                        <lightning:tab label="Pending Requests" id="Pending" onactive="{!c.handleActiveTab}">
+                            <c:EbizCharge_pendingRequestMethod aura:id="Pending Request" NoOfSelectedRecords="{!v.NoOfSelectedRecordsPending}" parentComp="{!this}" />
+                        </lightning:tab>
+                        <!--Added Requests Tabs Block-->
+                        <lightning:tab label="Added Payment Methods" id="Received" onactive="{!c.handleActiveTab}">
+                            <c:EbizCharge_addedRequestMethod aura:id="Received Request" NoOfSelectedRecords= "{!v.NoOfSelectedRecordsAdded}" parentComp="{!this}" />
+                        </lightning:tab>
+                    </lightning:tabset>
+                    <!-- =========== -->
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- =========== -->
+
+    <!--Email Information Block-->
+    <aura:renderIf isTrue="{!v.ActiveTab == 'Send'}">
+        <div class="slds-grid slds-m-top_x-small">
+            <div class="slds-col">
+                <div class="slds-card">
+                    <div class="slds-p-around_large">
+                        <div class="slds-text-title_bold">Email Information</div>
+                        <div class="slds-grid slds-gutters slds-form slds-m-vertical_small slds-m-horizontal_xx-large" role="list">
+
+                            <div class="page-section page-right">
+                                <div class="slds-form__row">
+                                    <div class="slds-size_1-of-4">
+                                        <div class="slds-form__item" role="listitem">
+                                            <div class="slds-form-element slds-form-element_stacked">
+                                                <lightning:select aura:id="req-field" class="select-auto-width" label="Select email template" required="true" messageWhenValueMissing="Please select a template!" value="{!v.Template}" onchange="{!c.getTemplateInfo}">
+                                                    <option value=""> Select </option>
+                                                    <aura:iteration items="{!v.emailTemplist}" var="val">
+                                                        <aura:if isTrue="{!val.TemplateType == 'AddPaymentMethodFormEmail' }">
+                                                            <option value="{!val.TemplateInternalId}">
+                                                                {!val.TemplateName } </option>
+                                                        </aura:if>
+                                                    </aura:iteration>
+                                                </lightning:select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="slds-form__row">
+                                    <div class="slds-form__item" role="listitem">
+                                        <div class="slds-size_12-of-12">
+                                            <div class="slds-size_3-of-6">
+                                                <div class="slds-form-element slds-form-element_stacked">
+                                                    <lightning:input aura:id="req-field" style="width: 422px;" type="email" required="true" label="From" value="{!v.fromEmail}" messageWhenTypeMismatch="Input a valid email address" maxlength="100" messageWhenValueMissing="Required Field" />
+                                                </div>
+                                            </div>
+                                            <div class="slds-size_3-of-6">
+                                                <div class="slds-form-element slds-form-element_stacked">
+                                                    <lightning:input aura:id="req-field" name="subject" style="width: 422px;" type="text" required="true" label="Subject" value="{!v.Subject}" placeholder="Input subject..." messageWhenValueMissing="Please enter subject!" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="slds-size_1-of-1" style="margin-left: 30px;">
+                                    <lightning:textarea aura:id="req-field-notes" name="notes" label="Notes" value="{!v.Notes}" />
+                                </div>
+                                <div class="slds-grid" style="padding-left: 30px;margin-top: 68px;">
+                                    <div class="slds-size_5-of-12 slds-align-middle slds-text-heading_small">
+                                        <span>Total Selected: {!v.NoOfSelectedRecords}</span>
+                                    </div>
+                                    <div class="slds-size_1-of-1">
+                                        <lightning:button variant="brand" label="Send Payment Method Requests" title="Send Payment Method Requests" iconName="utility:email" disabled="{!v.disableSubmitBtn}" onclick="{!c.sendReq}" />
+                                    </div>
+                                </div>
+                                <div class="slds-size_1-of-1" style="padding-left: 205px;margin-top: 2px;">
+                                <aura:If isTrue="{!v.disableSubmitBtn}">
+                                            <i><ui:outputText class ="colorText"
+                                            value="{!v.noEmailAlert}"/></i>
+                                                            </aura:If>
+                                                        </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+         <!-- ====== MODAL BOX FOR RECORDS HAVING NO EMAIL Start ======-->
+        <aura:if isTrue="{!v.isActive}">
+
+            <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open slds-modal_medium slds-backdrop slds-backdrop_open">
+                <div class="slds-modal__container" style="width:40%">
+                    <!-- ====== MODAL BOX HEADER Start ======-->
+                    <header class="slds-modal__header">
+                        <lightning:buttonIcon iconName="utility:close" onclick="{! c.closeModel }" alternativeText="close" variant="bare-inverse" class="slds-modal__close" />
+                        <h2 id="modal-heading-01" class="slds-text-heading_medium slds-hyphenate">
+                            Missing Email Addresses
+                        </h2>
+                    </header>
+                    <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1" style="text-align: center;">
+                        <p>
+                            Payment method requests will not be sent to selected accounts/contacts without an email address.
+                        </p>
+                        <p>
+                            Would you like to continue?
+                        </p>
+                        <br></br>
+                    </div>
+                    <footer class="slds-modal__footer">
+                        <lightning:button class="slds-m-top_small slds-float_right" variant="brand" label="Send Payment Method Requests" title="Send Payment Method Requests" iconName="utility:email" disabled="{!v.disableSubmitBtn}" onclick="{!c.sendRequest}" />
+                        <lightning:button class="slds-m-top_small slds-float_right slds-m-right_x-small" label="Cancel" title="Click Here" onclick="{! c.closeModel }" />
+                    </footer>
+                </div>
+            </section>
+        </aura:if>
+        <!-- ====== MODAL BOX FOR RECORDS HAVING NO EMAIL END ======-->
+    </aura:renderIf>
+    <!--Email Information Block End-->
+</aura:component>
